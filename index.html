@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>緋刃浪人・孤狼：修羅極限</title>
+<title>緋刃浪人・孤狼：修羅極限 - 繪卷重製版</title>
 <style>
   :root {
-    --bg-washi: #F4F1EA;
-    --sumi-dark: #1E1D1D;
-    --crimson: #FF1E44;
-    --cyan: #00F0FF;
-    --gold: #D4AF37;
-    --border-ink: #3A3530;
+    --bg-washi: #F4F0E8;
+    --ink-black: #1A1817;
+    --sumi-deep: #2A2624;
+    --crimson: #FF1037;
+    --cyan: #00F5FF;
+    --gold: #E5B239;
+    --border-ink: #2D2723;
   }
   * {
     box-sizing: border-box;
@@ -20,20 +21,20 @@
     user-select: none;
     -webkit-user-select: none;
     touch-action: none;
-    font-family: 'Hiragino Mincho ProN', 'Songti TC', 'Noto Serif TC', serif;
+    font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Songti TC', 'Noto Serif TC', serif;
   }
   body, html {
     width: 100%;
     height: 100%;
     overflow: hidden;
     background-color: var(--bg-washi);
-    color: var(--sumi-dark);
+    color: var(--ink-black);
   }
   #game-container {
     position: relative;
     width: 100vw;
     height: 100vh;
-    background: radial-gradient(circle at center, #FAF8F5 0%, #E8E3D8 100%);
+    background: radial-gradient(circle at center, #FDFBF7 0%, #ECE6D8 100%);
   }
   canvas {
     display: block;
@@ -60,23 +61,25 @@
   .vitals-box {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    width: min(280px, 45vw);
-    background: rgba(255, 255, 255, 0.75);
-    padding: 10px 14px;
+    gap: 7px;
+    width: min(290px, 45vw);
+    background: rgba(255, 253, 249, 0.88);
+    padding: 12px 16px;
     border: 2px solid var(--border-ink);
-    box-shadow: 3px 3px 0 var(--border-ink);
+    box-shadow: 4px 4px 0 rgba(45,39,35,0.85);
+    backdrop-filter: blur(4px);
   }
   .bar-container {
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: 1px;
   }
   .bar-bg {
     flex: 1;
-    height: 10px;
+    height: 9px;
     background: #DDD5C7;
     border: 1px solid var(--border-ink);
     position: relative;
@@ -85,23 +88,25 @@
   .bar-fill-hp {
     height: 100%;
     width: 100%;
-    background: linear-gradient(90deg, #FF1E44, #FF5C7A);
+    background: linear-gradient(90deg, #D41434, var(--crimson));
+    box-shadow: 0 0 8px rgba(255, 16, 55, 0.6);
     transition: width 0.15s ease-out;
   }
   .bar-fill-stam {
     height: 100%;
     width: 100%;
-    background: linear-gradient(90deg, #00A6B4, #00F0FF);
+    background: linear-gradient(90deg, #00A6B4, var(--cyan));
+    box-shadow: 0 0 8px rgba(0, 245, 255, 0.6);
     transition: width 0.1s ease-out;
   }
   .bar-fill-ult {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, #D4AF37, #FFE17D);
+    background: linear-gradient(90deg, #C29623, #FFE685);
+    box-shadow: 0 0 8px rgba(229, 178, 57, 0.6);
     transition: width 0.15s ease-out;
   }
 
-  /* TOP CENTER CLOCK & SCORE */
   .center-status {
     position: absolute;
     top: 12px;
@@ -110,67 +115,64 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: rgba(255, 255, 255, 0.85);
-    padding: 6px 18px;
+    background: rgba(255, 253, 249, 0.9);
+    padding: 6px 20px;
     border: 2px solid var(--border-ink);
-    box-shadow: 3px 3px 0 var(--border-ink);
+    box-shadow: 4px 4px 0 var(--border-ink);
   }
   .game-timer {
     font-size: 24px;
     font-weight: 900;
-    letter-spacing: 2px;
-    color: var(--sumi-dark);
+    letter-spacing: 3px;
   }
   .hud-score-label {
-    font-size: 13px;
-    font-weight: 800;
+    font-size: 12px;
+    font-weight: 900;
     color: var(--crimson);
     letter-spacing: 1px;
   }
 
-  /* EXP BAR */
   .exp-wrapper {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 6px;
-    background: rgba(0,0,0,0.1);
+    background: rgba(0,0,0,0.08);
   }
   .exp-fill {
     height: 100%;
     width: 0%;
     background: linear-gradient(90deg, var(--cyan), var(--crimson));
-    transition: width 0.1s;
+    transition: width 0.12s;
   }
   .level-badge {
     position: absolute;
     top: 10px;
     right: 20px;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 253, 249, 0.95);
     border: 2px solid var(--border-ink);
-    padding: 6px 14px;
+    padding: 7px 16px;
     font-size: 15px;
     font-weight: 900;
-    box-shadow: 3px 3px 0 var(--border-ink);
+    box-shadow: 4px 4px 0 var(--border-ink);
   }
 
-  /* BOSS BANNER */
   #boss-banner {
     position: absolute;
     top: 75px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(20, 20, 20, 0.9);
+    background: rgba(26, 24, 23, 0.92);
     color: #FFF;
     border: 2px solid var(--crimson);
-    padding: 6px 20px;
+    padding: 8px 24px;
     display: none;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    width: min(340px, 80vw);
-    box-shadow: 0 0 15px rgba(255, 30, 68, 0.4);
+    gap: 6px;
+    width: min(360px, 85vw);
+    box-shadow: 0 4px 20px rgba(255, 16, 55, 0.45);
   }
   #boss-hp-bar {
     width: 100%;
@@ -188,8 +190,8 @@
   #upgrade-modal {
     position: absolute;
     inset: 0;
-    background: rgba(235, 230, 220, 0.82);
-    backdrop-filter: blur(4px);
+    background: rgba(240, 236, 227, 0.86);
+    backdrop-filter: blur(6px);
     display: none;
     flex-direction: column;
     justify-content: center;
@@ -198,10 +200,10 @@
     padding: 16px;
   }
   .upgrade-title {
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 900;
-    margin-bottom: 20px;
-    letter-spacing: 4px;
+    margin-bottom: 22px;
+    letter-spacing: 5px;
     position: relative;
     padding-bottom: 8px;
   }
@@ -211,23 +213,23 @@
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 60px;
+    width: 80px;
     height: 3px;
     background: var(--crimson);
   }
   .cards-deck {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 18px;
     justify-content: center;
-    max-width: 950px;
+    max-width: 960px;
     width: 100%;
   }
   .ema-card {
     background: #FFFDF9;
     border: 3px solid var(--border-ink);
     box-shadow: 6px 6px 0 var(--border-ink);
-    width: 270px;
+    width: 280px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -245,8 +247,8 @@
   .preview-box {
     width: 100%;
     height: 110px;
-    background: #F1EDE4;
-    border: 1px solid #C4BCAC;
+    background: #ECE6D8;
+    border: 1px solid #C5BBAA;
     margin-bottom: 10px;
     position: relative;
     overflow: hidden;
@@ -260,7 +262,7 @@
     top: 8px;
     right: 8px;
     font-size: 11px;
-    padding: 2px 6px;
+    padding: 3px 8px;
     font-weight: 900;
     background: var(--border-ink);
     color: #FFF;
@@ -269,13 +271,13 @@
     font-size: 18px;
     font-weight: 900;
     margin-bottom: 6px;
-    color: var(--sumi-dark);
+    color: var(--ink-black);
   }
   .card-desc {
     font-size: 12px;
     line-height: 1.5;
     text-align: center;
-    color: #4A4641;
+    color: #4A443E;
   }
 
   /* TOUCH CONTROLS */
@@ -293,7 +295,7 @@
   #joystick-base {
     width: 120px;
     height: 120px;
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.45);
     border: 2px dashed var(--border-ink);
     border-radius: 50%;
     position: relative;
@@ -316,12 +318,12 @@
     pointer-events: auto;
   }
   .touch-btn {
-    width: 66px;
-    height: 66px;
+    width: 68px;
+    height: 68px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 253, 249, 0.9);
     border: 3px solid var(--border-ink);
-    box-shadow: 3px 3px 0 var(--border-ink);
+    box-shadow: 4px 4px 0 var(--border-ink);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -332,16 +334,16 @@
   }
   .touch-btn:active {
     transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 var(--border-ink);
+    box-shadow: 2px 2px 0 var(--border-ink);
   }
-  #btn-dash { border-color: var(--cyan); color: #007D87; }
+  #btn-dash { border-color: var(--cyan); color: #00818A; }
   #btn-ult { border-color: var(--gold); color: #9A7B1C; }
 
   /* GAME OVER / VICTORY OVERLAY */
   #gameover-screen {
     position: absolute;
     inset: 0;
-    background: rgba(240, 235, 225, 0.94);
+    background: rgba(244, 240, 232, 0.95);
     display: none;
     flex-direction: column;
     justify-content: center;
@@ -354,10 +356,10 @@
     border: 3px solid var(--border-ink);
     box-shadow: 6px 6px 0 var(--border-ink);
     padding: 24px;
-    max-width: 420px;
+    max-width: 440px;
     width: 100%;
     text-align: center;
-    margin: 16px 0;
+    margin: 18px 0;
   }
   .tally-row {
     display: flex;
@@ -378,16 +380,12 @@
     background: var(--border-ink);
     color: #FFF;
     border: none;
-    padding: 12px 34px;
+    padding: 12px 36px;
     font-size: 18px;
     font-weight: 900;
     letter-spacing: 2px;
     cursor: pointer;
     box-shadow: 4px 4px 0 var(--crimson);
-    transition: transform 0.1s;
-  }
-  .restart-btn:hover {
-    transform: translateY(-2px);
   }
 </style>
 </head>
@@ -406,30 +404,30 @@
         <div class="bar-container">
           <span>體力</span>
           <div class="bar-bg"><div class="bar-fill-hp" id="hpFill"></div></div>
-          <span id="hpText" style="font-size:11px; width:52px; text-align:right;">300/300</span>
+          <span id="hpText" style="font-size:11px; width:54px; text-align:right;">350/350</span>
         </div>
         <div class="bar-container">
           <span>氣力</span>
           <div class="bar-bg"><div class="bar-fill-stam" id="stamFill"></div></div>
-          <span id="stamText" style="font-size:11px; width:52px; text-align:right;">100%</span>
+          <span id="stamText" style="font-size:11px; width:54px; text-align:right;">100%</span>
         </div>
         <div class="bar-container">
           <span>奧義</span>
           <div class="bar-bg"><div class="bar-fill-ult" id="ultFill"></div></div>
-          <span id="ultText" style="font-size:11px; width:52px; text-align:right;">0%</span>
+          <span id="ultText" style="font-size:11px; width:54px; text-align:right;">0%</span>
         </div>
       </div>
 
       <div class="center-status">
         <div class="game-timer" id="hudTimer">00:00</div>
-        <div class="hud-score-label">戰績點數: <span id="hudScore">0</span></div>
+        <div class="hud-score-label">戰績: <span id="hudScore">0</span></div>
       </div>
 
       <div class="level-badge" id="levelBadge">階級 壹</div>
     </div>
 
     <div id="boss-banner">
-      <span id="boss-name" style="font-weight:900; color:#FF5C7A; letter-spacing:2px;">【般若將軍・羅剎鬼徹】降臨</span>
+      <span id="boss-name" style="font-weight:900; color:#FF5C7A; letter-spacing:2px;">【般若武將・羅剎鬼徹】降臨</span>
       <div id="boss-hp-bar"><div id="boss-hp-fill"></div></div>
     </div>
 
@@ -444,22 +442,22 @@
     </div>
   </div>
 
-  <!-- UPGRADE SELECTION MODAL -->
+  <!-- UPGRADE MODAL -->
   <div id="upgrade-modal">
     <div class="upgrade-title">心法突破・奧義修得</div>
     <div class="cards-deck" id="cardsDeck"></div>
   </div>
 
-  <!-- GAME OVER / RESULTS TALLY -->
+  <!-- GAMEOVER / SCORE -->
   <div id="gameover-screen">
-    <h1 style="font-size:36px; font-weight:900; letter-spacing:6px; color:var(--crimson);" id="endTitle">修羅道・力竭殞命</h1>
+    <h1 style="font-size:36px; font-weight:900; letter-spacing:6px; color:var(--crimson);">修羅道・力竭殞命</h1>
     <div class="score-tally-box">
       <div class="tally-row"><span>存活時間</span><span id="tallyTime">00:00</span></div>
       <div class="tally-row"><span>討伐妖魔數</span><span id="tallyKills">0 隻</span></div>
-      <div class="tally-row"><span>極意【見切】次數</span><span id="tallyMikiri">0 次</span></div>
+      <div class="tally-row"><span>極意【見切】</span><span id="tallyMikiri">0 次</span></div>
       <div class="tally-row"><span>彈反子彈數</span><span id="tallyParry">0 發</span></div>
       <div class="tally-row"><span>突破最高階級</span><span id="tallyLevel">Lv. 1</span></div>
-      <div class="total-score-row"><span>最終評價得分: </span><span id="tallyFinalScore">0</span></div>
+      <div class="total-score-row"><span>總評價得分: </span><span id="tallyFinalScore">0</span></div>
     </div>
     <button class="restart-btn" id="restartBtn">再入修羅輪迴</button>
   </div>
@@ -467,29 +465,26 @@
 
 <script>
 /* ==========================================================================
-   AUDIO SYNTHESIZER (Web Audio API - Procedural)
+   AUDIO SYNTHESIZER
    ========================================================================== */
 class SoundEngine {
   constructor() {
     this.ctx = null;
-    this.muted = false;
   }
   init() {
-    if (!this.ctx) {
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-    }
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
   }
   playSlash() {
-    if (this.muted || !this.ctx) return;
+    if (!this.ctx) return;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     const filter = this.ctx.createBiquadFilter();
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.12);
+    osc.frequency.setValueAtTime(820, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.12);
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(2500, this.ctx.currentTime);
-    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+    filter.frequency.setValueAtTime(3000, this.ctx.currentTime);
+    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
     osc.connect(filter);
     filter.connect(gain);
@@ -498,28 +493,28 @@ class SoundEngine {
     osc.stop(this.ctx.currentTime + 0.12);
   }
   playParry() {
-    if (this.muted || !this.ctx) return;
+    if (!this.ctx) return;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(1800, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(3200, this.ctx.currentTime + 0.08);
-    gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
+    osc.frequency.setValueAtTime(1900, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(3400, this.ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.28);
     osc.connect(gain);
     gain.connect(this.ctx.destination);
     osc.start();
-    osc.stop(this.ctx.currentTime + 0.3);
+    osc.stop(this.ctx.currentTime + 0.28);
   }
   playMikiri() {
-    if (this.muted || !this.ctx) return;
+    if (!this.ctx) return;
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(440, now);
-    osc.frequency.linearRampToValueAtTime(880, now + 0.25);
-    gain.gain.setValueAtTime(0.4, now);
+    osc.frequency.setValueAtTime(520, now);
+    osc.frequency.linearRampToValueAtTime(1040, now + 0.25);
+    gain.gain.setValueAtTime(0.45, now);
     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
     osc.connect(gain);
     gain.connect(this.ctx.destination);
@@ -527,39 +522,39 @@ class SoundEngine {
     osc.stop(now + 0.5);
   }
   playHit() {
-    if (this.muted || !this.ctx) return;
+    if (!this.ctx) return;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'square';
-    osc.frequency.setValueAtTime(140, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.1);
-    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.09);
+    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.09);
     osc.connect(gain);
     gain.connect(this.ctx.destination);
     osc.start();
-    osc.stop(this.ctx.currentTime + 0.1);
+    osc.stop(this.ctx.currentTime + 0.09);
   }
   playUlt() {
-    if (this.muted || !this.ctx) return;
+    if (!this.ctx) return;
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, now);
-    osc.frequency.linearRampToValueAtTime(1200, now + 0.6);
-    gain.gain.setValueAtTime(0.4, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+    osc.frequency.setValueAtTime(130, now);
+    osc.frequency.linearRampToValueAtTime(1400, now + 0.65);
+    gain.gain.setValueAtTime(0.45, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.85);
     osc.connect(gain);
     gain.connect(this.ctx.destination);
     osc.start();
-    osc.stop(now + 0.8);
+    osc.stop(now + 0.85);
   }
 }
 const audio = new SoundEngine();
 
 /* ==========================================================================
-   GAME ENGINE & STATE
+   ENGINE & STATE
    ========================================================================== */
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -575,16 +570,17 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// Core Player Object with Beefy HP and Balanced Defenses
+// Player
 const player = {
   x: 0,
   y: 0,
-  speed: 4.0,
-  maxHp: 350,       // Beefier HP so player doesn't get one-shot
+  radius: 16,
+  speed: 4.2,
+  maxHp: 350,
   hp: 350,
-  stamina: 100,     // Stamina for rolling/mikiri
+  stamina: 100,
   maxStamina: 100,
-  staminaRegen: 32, // Stamina per sec
+  staminaRegen: 34,
   invulnerableTime: 0,
   level: 1,
   exp: 0,
@@ -597,15 +593,16 @@ const player = {
   dashCooldown: 0,
   dashDirX: 0,
   dashDirY: 0,
-  canMikiriReflect: false,
-  parryShieldActive: 0, // When active, sweeps back enemy bullets
+  walkCycle: 0,
+  animTime: 0,
+  slashAnim: 0,
   weapons: [],
   passives: {
-    might: 1.0,       // +Damage
-    recovery: 1.0,    // HP regen
-    haste: 1.0,       // Cooldown reduction
-    area: 1.0,        // Area scale
-    ironBody: 0.85    // Damage taken multiplier (default 15% armor reduction)
+    might: 1.0,
+    recovery: 1.0,
+    haste: 1.0,
+    area: 1.0,
+    ironBody: 0.85
   }
 };
 
@@ -620,7 +617,7 @@ window.addEventListener('keyup', e => {
   keys[e.key.toLowerCase()] = false;
 });
 
-// Touch / Joystick Setup
+// Touch controls
 const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 const joyBase = document.getElementById('joystick-base');
 const joyStick = document.getElementById('joystick-stick');
@@ -633,7 +630,6 @@ if (isTouchDevice) {
   joyBase.addEventListener('touchstart', e => {
     audio.init();
     joyActive = true;
-    const t = e.touches[0];
     const rect = joyBase.getBoundingClientRect();
     joyStart = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
   }, { passive: false });
@@ -659,19 +655,52 @@ if (isTouchDevice) {
   window.addEventListener('touchend', endJoy);
   window.addEventListener('touchcancel', endJoy);
 
-  document.getElementById('btn-dash').addEventListener('touchstart', (e) => {
+  document.getElementById('btn-dash').addEventListener('touchstart', e => {
     e.preventDefault();
     audio.init();
     triggerDash();
   });
-  document.getElementById('btn-ult').addEventListener('touchstart', (e) => {
+  document.getElementById('btn-ult').addEventListener('touchstart', e => {
     e.preventDefault();
     audio.init();
     triggerUltimate();
   });
 }
 
-// Track Game Statistics for Result Screen
+// Scenery & Map Decorations
+const zenStones = [];
+const stoneLanterns = [];
+for (let i = 0; i < 40; i++) {
+  zenStones.push({
+    x: (Math.random() - 0.5) * 4500,
+    y: (Math.random() - 0.5) * 4500,
+    rx: Math.random() * 24 + 16,
+    ry: Math.random() * 16 + 12,
+    angle: Math.random() * Math.PI
+  });
+}
+for (let i = 0; i < 25; i++) {
+  stoneLanterns.push({
+    x: (Math.random() - 0.5) * 4200,
+    y: (Math.random() - 0.5) * 4200
+  });
+}
+
+// Environmental Petals
+const petals = [];
+for (let i = 0; i < 65; i++) {
+  petals.push({
+    x: Math.random() * gameWidth,
+    y: Math.random() * gameHeight,
+    vx: Math.random() * 30 + 15,
+    vy: Math.random() * 25 + 35,
+    rot: Math.random() * Math.PI * 2,
+    vrot: (Math.random() - 0.5) * 2,
+    size: Math.random() * 4 + 4
+  });
+}
+
+// Game Stats
 let stats = {
   startTime: Date.now(),
   elapsedSeconds: 0,
@@ -682,12 +711,13 @@ let stats = {
 };
 
 let enemies = [];
-let enemyProjectiles = []; // Bullets that can be parried/reflected!
+let enemyProjectiles = [];
 let playerProjectiles = [];
 let particles = [];
 let floatingTexts = [];
 let pickables = [];
 let shockwaves = [];
+let bloodSplats = [];
 let screenShake = 0;
 let timeSlowFactor = 1.0;
 let timeSlowDuration = 0;
@@ -695,47 +725,55 @@ let isPaused = false;
 let isGameOver = false;
 
 /* ==========================================================================
-   WEAPONS & SKILLS REPERTOIRE
+   UPGRADES & WEAPONS
    ========================================================================== */
 const ALL_UPGRADES = [
   {
     id: 'iaijutsu',
     type: 'weapon',
     name: '居合・水天一文字',
-    desc: '揮斬出穿透性高階水藍水墨劍氣，對直線妖魔造成大範圍割裂。',
+    desc: '斬出帶有水流墨暈的穿透型水藍劍弧，撕裂前方大群妖魔。',
     level: 1,
     maxLevel: 5,
-    cooldown: 1.0,
+    cooldown: 0.95,
     timer: 0,
     renderPreview(ctx, t) {
-      ctx.fillStyle = '#00F0FF';
-      ctx.shadowColor = '#00F0FF';
-      ctx.shadowBlur = 10;
+      ctx.save();
+      ctx.translate(135, 55);
+      ctx.strokeStyle = '#00F5FF';
+      ctx.lineWidth = 5;
+      ctx.shadowColor = '#00F5FF';
+      ctx.shadowBlur = 12;
       ctx.beginPath();
-      const waveX = 60 + Math.sin(t * 8) * 35;
-      ctx.arc(waveX, 55, 28, -Math.PI / 3, Math.PI / 3);
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = '#00F0FF';
+      const sweep = Math.sin(t * 8) * 0.8;
+      ctx.arc(0, 0, 40, sweep - 0.9, sweep + 0.9);
       ctx.stroke();
+      ctx.restore();
     }
   },
   {
     id: 'ofuda',
     type: 'weapon',
     name: '破邪・業火符咒',
-    desc: '祭出追蹤妖靈的鮮紅靈符，命中引發水墨爆炸，具備高擊退力。',
+    desc: '祭出赤紅燃燒的破邪御札，自動追蹤魔物並爆裂出符文水墨。',
     level: 0,
     maxLevel: 5,
-    cooldown: 1.4,
+    cooldown: 1.35,
     timer: 0,
     renderPreview(ctx, t) {
-      ctx.fillStyle = '#FF1E44';
-      ctx.shadowColor = '#FF1E44';
-      ctx.shadowBlur = 8;
       for (let i = 0; i < 3; i++) {
-        const x = 40 + i * 40 + Math.sin(t * 6 + i) * 8;
-        const y = 55 + Math.cos(t * 6 + i) * 12;
-        ctx.fillRect(x - 6, y - 10, 12, 20);
+        const x = 50 + i * 40 + Math.sin(t * 5 + i) * 10;
+        const y = 55 + Math.cos(t * 5 + i) * 12;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(Math.sin(t * 4 + i) * 0.3);
+        ctx.fillStyle = '#FF1037';
+        ctx.shadowColor = '#FF1037';
+        ctx.shadowBlur = 8;
+        ctx.fillRect(-6, -11, 12, 22);
+        ctx.fillStyle = '#FFE5A3';
+        ctx.fillRect(-2, -5, 4, 10);
+        ctx.restore();
       }
     }
   },
@@ -743,21 +781,23 @@ const ALL_UPGRADES = [
     id: 'sakura',
     type: 'weapon',
     name: '櫻吹雪・散華之陣',
-    desc: '於周身召喚高轉速鋒芒櫻花刀瓣力場，持續撕裂逼近的貼身魔物。',
+    desc: '周身流轉高旋轉鋒芒落櫻刃風，持續斬割貼身的近戰妖群。',
     level: 0,
     maxLevel: 5,
     cooldown: 0.1,
     timer: 0,
     renderPreview(ctx, t) {
-      ctx.fillStyle = '#FF5C7A';
       ctx.save();
       ctx.translate(135, 55);
-      ctx.rotate(t * 4);
-      for (let i = 0; i < 6; i++) {
+      ctx.rotate(t * 3.5);
+      ctx.fillStyle = '#FF5C7A';
+      ctx.shadowColor = '#FF5C7A';
+      ctx.shadowBlur = 6;
+      for (let i = 0; i < 5; i++) {
         ctx.beginPath();
-        ctx.arc(35, 0, 6, 0, Math.PI * 2);
+        ctx.ellipse(36, 0, 8, 4, 0.4, 0, Math.PI * 2);
         ctx.fill();
-        ctx.rotate(Math.PI / 3);
+        ctx.rotate((Math.PI * 2) / 5);
       }
       ctx.restore();
     }
@@ -766,16 +806,18 @@ const ALL_UPGRADES = [
     id: 'juzu',
     type: 'weapon',
     name: '金剛・菩提念珠',
-    desc: '水藍金剛念珠環繞衛體，能將撞擊的妖怪碾碎並格擋外圍妖彈。',
+    desc: '旋轉金剛念珠守護周身，碎裂外圍小怪並提供彈道阻隔。',
     level: 0,
     maxLevel: 5,
     cooldown: 0.1,
     timer: 0,
     renderPreview(ctx, t) {
-      ctx.fillStyle = '#00F0FF';
       ctx.save();
       ctx.translate(135, 55);
-      ctx.rotate(-t * 3);
+      ctx.rotate(-t * 2.8);
+      ctx.fillStyle = '#00F5FF';
+      ctx.shadowColor = '#00F5FF';
+      ctx.shadowBlur = 8;
       for (let i = 0; i < 4; i++) {
         ctx.beginPath();
         ctx.arc(38, 0, 7, 0, Math.PI * 2);
@@ -788,19 +830,21 @@ const ALL_UPGRADES = [
   {
     id: 'thunder',
     type: 'weapon',
-    name: '八咫・破曉神雷',
-    desc: '召喚赤紅天雷破空猛烈劈擊血量最深之魔物，伴隨廣域落雷衝擊。',
+    name: '八咫・神罰天雷',
+    desc: '召喚赤紅天雷從天際轟頂最強魔物，留存焦墨與連鎖電流。',
     level: 0,
     maxLevel: 5,
-    cooldown: 2.2,
+    cooldown: 2.1,
     timer: 0,
     renderPreview(ctx, t) {
-      ctx.strokeStyle = '#FF1E44';
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#FF1037';
+      ctx.lineWidth = 3.5;
+      ctx.shadowColor = '#FF1037';
+      ctx.shadowBlur = 10;
       ctx.beginPath();
       ctx.moveTo(135, 10);
-      ctx.lineTo(130 + Math.sin(t*10)*8, 45);
-      ctx.lineTo(140 + Math.cos(t*10)*8, 70);
+      ctx.lineTo(128 + Math.sin(t*12)*8, 45);
+      ctx.lineTo(142 + Math.cos(t*12)*8, 70);
       ctx.lineTo(135, 100);
       ctx.stroke();
     }
@@ -809,18 +853,18 @@ const ALL_UPGRADES = [
     id: 'caltrop',
     type: 'weapon',
     name: '忍法・黑墨撒菱',
-    desc: '奔走時在足跡散落淬毒墨菱，大幅減速踏過妖魔並給予持續毒蝕。',
+    desc: '奔走時在地面留下水墨淬毒菱刺，大幅減速並持續腐蝕敵人。',
     level: 0,
     maxLevel: 5,
     cooldown: 1.8,
     timer: 0,
     renderPreview(ctx, t) {
-      ctx.fillStyle = '#1E1D1D';
+      ctx.fillStyle = '#1A1817';
       for (let i = 0; i < 5; i++) {
-        const x = 30 + i * 35;
+        const x = 35 + i * 35;
         const y = 55 + (i % 2 === 0 ? 8 : -8);
         ctx.beginPath();
-        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
         ctx.fill();
       }
     }
@@ -829,11 +873,11 @@ const ALL_UPGRADES = [
     id: 'passive_might',
     type: 'passive',
     name: '修羅・破極殺意',
-    desc: '全體術與忍具傷害提升 25%，增加暴擊時產生之水墨衝擊半徑。',
+    desc: '全體術與忍法傷害提升 25%，強化擊破魔物時的割裂範圍。',
     level: 0,
     maxLevel: 5,
     renderPreview(ctx) {
-      ctx.fillStyle = '#FF1E44';
+      ctx.fillStyle = '#FF1037';
       ctx.font = 'bold 36px serif';
       ctx.textAlign = 'center';
       ctx.fillText('力', 135, 68);
@@ -843,11 +887,11 @@ const ALL_UPGRADES = [
     id: 'passive_armor',
     type: 'passive',
     name: '不動・金剛剛體',
-    desc: '大幅削弱承受之妖氣傷害 15%，提升玩家生命回復力與抗暴擊度。',
+    desc: '大幅削弱承受之妖氣傷害 15%，提升玩家最大生命上限與回復。',
     level: 0,
     maxLevel: 5,
     renderPreview(ctx) {
-      ctx.fillStyle = '#00F0FF';
+      ctx.fillStyle = '#00F5FF';
       ctx.font = 'bold 36px serif';
       ctx.textAlign = 'center';
       ctx.fillText('體', 135, 68);
@@ -861,7 +905,7 @@ const ALL_UPGRADES = [
     level: 0,
     maxLevel: 5,
     renderPreview(ctx) {
-      ctx.fillStyle = '#D4AF37';
+      ctx.fillStyle = '#E5B239';
       ctx.font = 'bold 36px serif';
       ctx.textAlign = 'center';
       ctx.fillText('速', 135, 68);
@@ -869,7 +913,6 @@ const ALL_UPGRADES = [
   }
 ];
 
-// Initialize player with Iaijutsu
 player.weapons.push(ALL_UPGRADES[0]);
 
 /* ==========================================================================
@@ -879,12 +922,9 @@ function triggerDash() {
   if (player.dashCooldown > 0 || player.stamina < 30 || isPaused || isGameOver) return;
   player.stamina -= 30;
   player.dashDuration = 0.28;
-  player.dashCooldown = 0.55;
+  player.dashCooldown = 0.52;
   player.invulnerableTime = 0.32;
-  player.canMikiriReflect = true;
-  player.parryShieldActive = 0.3; // 0.3s parry window
 
-  // Dash Direction
   let dx = 0, dy = 0;
   if (joyActive) {
     dx = joyDelta.x;
@@ -907,21 +947,21 @@ function triggerDash() {
   player.dashDirY = dy;
   audio.playSlash();
 
-  // Create Water-Blue ink phantom trail
-  for (let i = 0; i < 4; i++) {
+  // Create ink phantom trail with brush styling
+  for (let i = 0; i < 5; i++) {
     particles.push({
-      x: player.x - dx * i * 15,
-      y: player.y - dy * i * 15,
-      vx: (Math.random() - 0.5) * 30,
-      vy: (Math.random() - 0.5) * 30,
-      radius: 14,
-      color: '#00F0FF',
-      alpha: 0.6,
-      decay: 2.2
+      type: 'brushTrail',
+      x: player.x - dx * i * 14,
+      y: player.y - dy * i * 14,
+      vx: (Math.random() - 0.5) * 20,
+      vy: (Math.random() - 0.5) * 20,
+      radius: 16 - i * 2,
+      color: '#00F5FF',
+      alpha: 0.65,
+      decay: 2.4
     });
   }
 
-  // Check Mikiri or Projectile Reflection
   checkMikiriReflect();
 }
 
@@ -932,51 +972,58 @@ function checkMikiriReflect() {
   for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
     const p = enemyProjectiles[i];
     const dist = Math.hypot(p.x - player.x, p.y - player.y);
-    if (dist < 85) {
-      // REFLECT BULLET INTO PLAYER PROJECTILE!
+    if (dist < 88) {
       reflectedAny = true;
       stats.parriedBullets++;
       stats.score += 75;
-      floatingTexts.push({ x: p.x, y: p.y - 20, text: '彈反！', color: '#00F0FF', life: 0.8, size: 20 });
+      floatingTexts.push({ x: p.x, y: p.y - 20, text: '彈反！', color: '#00F5FF', life: 0.8, size: 22 });
 
-      // Turn into deadly player projectile heading in opposite direction
       playerProjectiles.push({
+        type: 'parried',
         x: p.x,
         y: p.y,
         vx: -p.vx * 1.8,
         vy: -p.vy * 1.8,
-        damage: 160 * player.passives.might,
-        radius: 8,
+        damage: 170 * player.passives.might,
+        radius: 9,
         penetrate: 3,
-        color: '#00F0FF',
+        color: '#00F5FF',
         life: 2.0
       });
-
       enemyProjectiles.splice(i, 1);
     }
   }
 
-  // 2. Trigger Mikiri on Attacking / Telegraphing Enemies
+  // 2. Mikiri Slash against Active Telegraphing Enemies
   let triggeredMikiri = false;
   enemies.forEach(e => {
     const dist = Math.hypot(e.x - player.x, e.y - player.y);
-    if (dist < 110 && (e.isTelegraphing || e.state === 'attack' || e.isCharging)) {
+    if (dist < 115 && (e.isTelegraphing || e.state === 'attack' || e.isCharging)) {
       triggeredMikiri = true;
-      e.hp -= 280 * player.passives.might;
+      e.hp -= 290 * player.passives.might;
       e.stunTimer = 1.2;
       stats.score += 150;
 
-      // Slicing blood & ink splatter
-      for (let k = 0; k < 18; k++) {
+      // Ink Slash Splatters
+      bloodSplats.push({
+        x: e.x,
+        y: e.y,
+        radius: Math.random() * 26 + 18,
+        color: Math.random() > 0.4 ? 'rgba(255, 16, 55, 0.55)' : 'rgba(26, 24, 23, 0.45)',
+        alpha: 1.0
+      });
+
+      for (let k = 0; k < 22; k++) {
         particles.push({
+          type: 'inkDrop',
           x: e.x,
           y: e.y,
-          vx: (Math.random() - 0.5) * 350,
-          vy: (Math.random() - 0.5) * 350,
-          radius: Math.random() * 6 + 3,
-          color: Math.random() > 0.4 ? '#FF1E44' : '#00F0FF',
+          vx: (Math.random() - 0.5) * 380,
+          vy: (Math.random() - 0.5) * 380,
+          radius: Math.random() * 5 + 3,
+          color: Math.random() > 0.4 ? '#FF1037' : '#00F5FF',
           alpha: 1.0,
-          decay: 2.0
+          decay: 1.8
         });
       }
     }
@@ -985,9 +1032,9 @@ function checkMikiriReflect() {
   if (triggeredMikiri || reflectedAny) {
     stats.mikiriTriggers++;
     audio.playMikiri();
-    triggerTimeSlow(0.18, 0.45); // Bullet time
+    triggerTimeSlow(0.18, 0.45);
     screenShake = 16;
-    floatingTexts.push({ x: player.x, y: player.y - 45, text: '【見切・居合一閃】', color: '#00F0FF', life: 1.2, size: 26 });
+    floatingTexts.push({ x: player.x, y: player.y - 48, text: '【見切・居合一閃】', color: '#00F5FF', life: 1.2, size: 26 });
     player.ultCharge = Math.min(player.ultMax, player.ultCharge + 15);
   }
 }
@@ -999,26 +1046,26 @@ function triggerUltimate() {
   triggerTimeSlow(0.1, 0.7);
   screenShake = 24;
 
-  floatingTexts.push({ x: player.x, y: player.y - 60, text: '奧義・天魔滅殺', color: '#FF1E44', life: 1.6, size: 36 });
+  floatingTexts.push({ x: player.x, y: player.y - 60, text: '奧義・天魔滅殺', color: '#FF1037', life: 1.6, size: 36 });
 
-  // Full Screen Ink Slash Wave
   enemies.forEach(e => {
-    e.hp -= 650 * player.passives.might;
+    e.hp -= 680 * player.passives.might;
     e.vx = (e.x - player.x) * 0.1;
     e.vy = (e.y - player.y) * 0.1;
   });
-  enemyProjectiles = []; // Clear all enemy projectiles
+  enemyProjectiles = [];
 
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 45; i++) {
     particles.push({
-      x: player.x + (Math.random() - 0.5) * 800,
-      y: player.y + (Math.random() - 0.5) * 600,
-      vx: (Math.random() - 0.5) * 400,
-      vy: (Math.random() - 0.5) * 400,
-      radius: Math.random() * 10 + 4,
-      color: Math.random() > 0.5 ? '#FF1E44' : '#00F0FF',
+      type: 'inkDrop',
+      x: player.x + (Math.random() - 0.5) * 850,
+      y: player.y + (Math.random() - 0.5) * 650,
+      vx: (Math.random() - 0.5) * 450,
+      vy: (Math.random() - 0.5) * 450,
+      radius: Math.random() * 8 + 3,
+      color: Math.random() > 0.5 ? '#FF1037' : '#00F5FF',
       alpha: 1.0,
-      decay: 1.4
+      decay: 1.5
     });
   }
 }
@@ -1029,7 +1076,7 @@ function triggerTimeSlow(factor, duration) {
 }
 
 /* ==========================================================================
-   ENEMY TYPES WITH DISTINCT ATTACK PATTERNS
+   ENEMY SPAWN & BEHAVIORS
    ========================================================================== */
 function spawnEnemy(type, isElite = false) {
   const angle = Math.random() * Math.PI * 2;
@@ -1037,12 +1084,6 @@ function spawnEnemy(type, isElite = false) {
   const x = player.x + Math.cos(angle) * dist;
   const y = player.y + Math.sin(angle) * dist;
 
-  let baseHp = 50;
-  let speed = 2.4;
-  let radius = 18;
-  let color = '#3A3530';
-
-  // Base difficulty scaling by survival time
   const timeMul = 1.0 + stats.elapsedSeconds * 0.007;
 
   const enemy = {
@@ -1051,62 +1092,49 @@ function spawnEnemy(type, isElite = false) {
     y,
     vx: 0,
     vy: 0,
-    radius,
-    hp: baseHp * timeMul * (isElite ? 4 : 1),
-    maxHp: baseHp * timeMul * (isElite ? 4 : 1),
-    speed,
+    radius: 18,
+    hp: 55 * timeMul * (isElite ? 4 : 1),
+    maxHp: 55 * timeMul * (isElite ? 4 : 1),
+    speed: 2.4,
     isElite,
-    color,
+    color: '#3A3530',
     state: 'chase',
     stateTimer: 0,
     shootTimer: Math.random() * 2,
     telegraphAngle: 0,
-    telegraphLength: 0,
     isTelegraphing: false,
     stunTimer: 0,
-    dashTarget: { x: 0, y: 0 }
+    animTime: Math.random() * 10
   };
 
   if (type === 'tengu') {
-    // Fast flanker, shoots feather needles
     enemy.speed = 3.6;
-    enemy.hp = 40 * timeMul;
-    enemy.color = '#1E1D1D';
+    enemy.hp = 42 * timeMul;
   } else if (type === 'samurai') {
-    // Armored, charges with katana sweep
     enemy.speed = 2.1;
-    enemy.hp = 110 * timeMul;
-    enemy.color = '#382B29';
+    enemy.hp = 115 * timeMul;
   } else if (type === 'kitsune') {
-    // Ranged spirit, fires homing or spiral cyan/red fireballs
     enemy.speed = 1.9;
-    enemy.hp = 65 * timeMul;
-    enemy.color = '#D14836';
+    enemy.hp = 70 * timeMul;
   } else if (type === 'oni') {
-    // Massive brute, ground slam with telegraph danger zone
     enemy.speed = 1.4;
-    enemy.hp = 260 * timeMul;
+    enemy.hp = 270 * timeMul;
     enemy.radius = 28;
-    enemy.color = '#7A1822';
   } else if (type === 'sorcerer') {
-    // Special Pattern: Fires ring bullet barrages
     enemy.speed = 1.6;
-    enemy.hp = 90 * timeMul;
-    enemy.color = '#5A3D7A';
+    enemy.hp = 95 * timeMul;
   } else if (type === 'boss_rashamon') {
-    // Boss 1
     enemy.speed = 1.8;
     enemy.radius = 42;
-    enemy.hp = 4200;
-    enemy.maxHp = 4200;
+    enemy.hp = 4500;
+    enemy.maxHp = 4500;
     enemy.isBoss = true;
     enemy.name = '【般若武將・羅剎鬼徹】';
   } else if (type === 'boss_tamamo') {
-    // Boss 2
     enemy.speed = 2.2;
     enemy.radius = 45;
-    enemy.hp = 7800;
-    enemy.maxHp = 7800;
+    enemy.hp = 8200;
+    enemy.maxHp = 8200;
     enemy.isBoss = true;
     enemy.name = '【九尾妖狐・玉藻之魂】';
   }
@@ -1114,9 +1142,6 @@ function spawnEnemy(type, isElite = false) {
   enemies.push(enemy);
 }
 
-/* ==========================================================================
-   UPGRADE & LEVEL-UP DRAFTING
-   ========================================================================== */
 function checkLevelUp() {
   if (player.exp >= player.expToNext) {
     player.exp -= player.expToNext;
@@ -1140,10 +1165,8 @@ function openUpgradeModal() {
   deck.innerHTML = '';
   modal.style.display = 'flex';
 
-  // Pick 3 random available upgrades
   const pool = ALL_UPGRADES.filter(u => u.level < u.maxLevel);
   const shuffled = pool.sort(() => Math.random() - 0.5).slice(0, 3);
-
   const previewCanvases = [];
 
   shuffled.forEach(upgrade => {
@@ -1154,7 +1177,7 @@ function openUpgradeModal() {
     pBox.className = 'preview-box';
     const pCanvas = document.createElement('canvas');
     pCanvas.className = 'preview-canvas';
-    pCanvas.width = 270;
+    pCanvas.width = 280;
     pCanvas.height = 110;
     pBox.appendChild(pCanvas);
 
@@ -1186,7 +1209,6 @@ function openUpgradeModal() {
     previewCanvases.push({ canvas: pCanvas, ctx: pCanvas.getContext('2d'), upgrade });
   });
 
-  // Loop animated previews inside upgrade cards
   let startTime = Date.now();
   function loopPreview() {
     const t = (Date.now() - startTime) / 1000;
@@ -1204,11 +1226,8 @@ function openUpgradeModal() {
 function selectUpgrade(upgrade) {
   upgrade.level++;
   if (upgrade.type === 'weapon') {
-    if (!player.weapons.find(w => w.id === upgrade.id)) {
-      player.weapons.push(upgrade);
-    }
+    if (!player.weapons.find(w => w.id === upgrade.id)) player.weapons.push(upgrade);
   } else {
-    // Apply passives
     if (upgrade.id === 'passive_might') player.passives.might += 0.25;
     if (upgrade.id === 'passive_armor') {
       player.passives.ironBody = Math.max(0.45, player.passives.ironBody - 0.12);
@@ -1223,7 +1242,7 @@ function selectUpgrade(upgrade) {
 }
 
 /* ==========================================================================
-   UPDATE LOOPS (WEAPONS, MOBS, PROJECTILES)
+   UPDATE LOOPS
    ========================================================================== */
 let lastFrameTime = performance.now();
 let spawnTimer = 0;
@@ -1243,12 +1262,14 @@ function gameLoop(now) {
 }
 
 function update(rawDt) {
-  // Bullet-time slow motion handler
   if (timeSlowDuration > 0) {
     timeSlowDuration -= rawDt;
     if (timeSlowDuration <= 0) timeSlowFactor = 1.0;
   }
   const dt = rawDt * timeSlowFactor;
+
+  player.animTime += dt;
+  if (player.slashAnim > 0) player.slashAnim -= dt;
 
   stats.elapsedSeconds = Math.floor((Date.now() - stats.startTime) / 1000);
   const minutes = Math.floor(stats.elapsedSeconds / 60).toString().padStart(2, '0');
@@ -1256,17 +1277,16 @@ function update(rawDt) {
   document.getElementById('hudTimer').innerText = `${minutes}:${seconds}`;
   document.getElementById('hudScore').innerText = stats.score;
 
-  // 1. Player Movement & Stamina
+  // Player Movement & Stamina
   player.stamina = Math.min(player.maxStamina, player.stamina + player.staminaRegen * rawDt);
   if (player.dashCooldown > 0) player.dashCooldown -= rawDt;
   if (player.invulnerableTime > 0) player.invulnerableTime -= rawDt;
-  if (player.parryShieldActive > 0) player.parryShieldActive -= rawDt;
 
   if (player.dashDuration > 0) {
     player.dashDuration -= rawDt;
     player.x += player.dashDirX * player.speed * 2.8 * 60 * rawDt;
     player.y += player.dashDirY * player.speed * 2.8 * 60 * rawDt;
-    checkMikiriReflect(); // Keep sweeping parry window active during dash
+    checkMikiriReflect();
   } else {
     let mx = 0, my = 0;
     if (joyActive) {
@@ -1287,14 +1307,24 @@ function update(rawDt) {
       player.y += my * player.speed * 60 * dt;
       player.facingAngle = Math.atan2(my, mx);
       player.isMoving = true;
+      player.walkCycle += dt * 14;
     } else {
       player.isMoving = false;
     }
   }
 
-  // 2. High Swarm Monster Spawning Logic (Lots of mobs)
+  // Petals Update
+  petals.forEach(p => {
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.rot += p.vrot * dt;
+    if (p.x > gameWidth) p.x = -10;
+    if (p.y > gameHeight) p.y = -10;
+  });
+
+  // Monster Spawns
   spawnTimer += dt;
-  const targetMobCount = 35 + Math.min(110, stats.elapsedSeconds * 0.9);
+  const targetMobCount = 35 + Math.min(115, stats.elapsedSeconds * 0.9);
   if (enemies.length < targetMobCount && spawnTimer > 0.25) {
     spawnTimer = 0;
     const roll = Math.random();
@@ -1305,11 +1335,10 @@ function update(rawDt) {
     else spawnEnemy('sorcerer');
   }
 
-  // Boss Spawns
   if (stats.elapsedSeconds >= 60 && !bossSpawned1) {
     bossSpawned1 = true;
     spawnEnemy('boss_rashamon');
-    showBossBanner('【般若將軍・羅剎鬼徹】現世！');
+    showBossBanner('【般若武將・羅剎鬼徹】現世！');
   }
   if (stats.elapsedSeconds >= 150 && !bossSpawned2) {
     bossSpawned2 = true;
@@ -1317,25 +1346,16 @@ function update(rawDt) {
     showBossBanner('【九尾妖狐・玉藻之魂】禍亂人間！');
   }
 
-  // 3. Weapons Auto-Trigger
   updateWeapons(dt);
-
-  // 4. Update Enemy Projectiles & Bullets
   updateEnemyProjectiles(dt);
-
-  // 5. Update Player Projectiles
   updatePlayerProjectiles(dt);
-
-  // 6. Update Enemies & Behaviors
   updateEnemies(dt);
-
-  // 7. Pickables & HUD Updates
   updatePickables(dt);
   updateFloatingText(dt);
   updateParticles(dt);
   checkLevelUp();
 
-  // Update HUD Bars
+  // HUD Bars
   const hpPercent = Math.max(0, (player.hp / player.maxHp) * 100);
   document.getElementById('hpFill').style.width = `${hpPercent}%`;
   document.getElementById('hpText').innerText = `${Math.ceil(player.hp)}/${player.maxHp}`;
@@ -1351,13 +1371,9 @@ function update(rawDt) {
   const expPercent = Math.max(0, (player.exp / player.expToNext) * 100);
   document.getElementById('expFill').style.width = `${expPercent}%`;
 
-  // Natural passive HP recovery
   player.hp = Math.min(player.maxHp, player.hp + 1.8 * player.passives.recovery * dt);
 
-  // Check Death
-  if (player.hp <= 0 && !isGameOver) {
-    triggerGameOver();
-  }
+  if (player.hp <= 0 && !isGameOver) triggerGameOver();
 }
 
 function showBossBanner(name) {
@@ -1366,9 +1382,6 @@ function showBossBanner(name) {
   b.style.display = 'flex';
 }
 
-/* ==========================================================================
-   WEAPONS UPDATE LOGIC
-   ========================================================================== */
 function updateWeapons(dt) {
   player.weapons.forEach(w => {
     w.timer += dt;
@@ -1377,7 +1390,8 @@ function updateWeapons(dt) {
     if (w.id === 'iaijutsu' && w.timer >= effCooldown) {
       w.timer = 0;
       audio.playSlash();
-      // Wave slash forward towards nearest enemy or facing angle
+      player.slashAnim = 0.24;
+
       let targetAngle = player.facingAngle;
       const nearest = getNearestEnemy();
       if (nearest) targetAngle = Math.atan2(nearest.y - player.y, nearest.x - player.x);
@@ -1386,13 +1400,14 @@ function updateWeapons(dt) {
         type: 'iaijutsu',
         x: player.x,
         y: player.y,
-        vx: Math.cos(targetAngle) * 480,
-        vy: Math.sin(targetAngle) * 480,
+        vx: Math.cos(targetAngle) * 500,
+        vy: Math.sin(targetAngle) * 500,
+        angle: targetAngle,
         damage: (65 + w.level * 22) * player.passives.might,
-        radius: 35 * player.passives.area,
+        radius: 36 * player.passives.area,
         penetrate: 6 + w.level,
-        color: '#00F0FF',
-        life: 0.8
+        color: '#00F5FF',
+        life: 0.82
       });
     }
 
@@ -1405,25 +1420,25 @@ function updateWeapons(dt) {
           type: 'ofuda',
           x: player.x,
           y: player.y,
-          vx: Math.cos(ang) * 380,
-          vy: Math.sin(ang) * 380,
+          vx: Math.cos(ang) * 400,
+          vy: Math.sin(ang) * 400,
+          angle: ang,
           target: t,
-          damage: (45 + w.level * 18) * player.passives.might,
+          damage: (48 + w.level * 18) * player.passives.might,
           radius: 12,
           penetrate: 1,
-          color: '#FF1E44',
+          color: '#FF1037',
           life: 1.8
         });
       });
     }
 
     if (w.id === 'sakura') {
-      // Passive orbital ring, tick damages close enemies
-      const r = 80 * player.passives.area;
+      const r = 85 * player.passives.area;
       enemies.forEach(e => {
         const d = Math.hypot(e.x - player.x, e.y - player.y);
         if (d < r + e.radius) {
-          e.hp -= (28 + w.level * 8) * player.passives.might * dt;
+          e.hp -= (30 + w.level * 8) * player.passives.might * dt;
         }
       });
     }
@@ -1433,19 +1448,19 @@ function updateWeapons(dt) {
       const eliteOrNearest = enemies.find(e => e.isBoss) || enemies.find(e => e.isElite) || getNearestEnemy();
       if (eliteOrNearest) {
         audio.playHit();
-        eliteOrNearest.hp -= (180 + w.level * 60) * player.passives.might;
+        eliteOrNearest.hp -= (190 + w.level * 60) * player.passives.might;
         screenShake = 8;
-        // Thunder ink explosion
-        for (let i = 0; i < 16; i++) {
+        for (let i = 0; i < 18; i++) {
           particles.push({
+            type: 'inkDrop',
             x: eliteOrNearest.x,
             y: eliteOrNearest.y,
-            vx: (Math.random() - 0.5) * 200,
-            vy: (Math.random() - 0.5) * 200,
+            vx: (Math.random() - 0.5) * 220,
+            vy: (Math.random() - 0.5) * 220,
             radius: 5,
-            color: '#FF1E44',
+            color: '#FF1037',
             alpha: 1,
-            decay: 2.5
+            decay: 2.2
           });
         }
       }
@@ -1484,12 +1499,10 @@ function getNearestEnemies(count) {
   }).slice(0, count);
 }
 
-/* ==========================================================================
-   ENEMY BEHAVIORS & SPECIAL ATTACK MODES
-   ========================================================================== */
 function updateEnemies(dt) {
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i];
+    e.animTime += dt;
 
     if (e.stunTimer > 0) {
       e.stunTimer -= dt;
@@ -1499,20 +1512,19 @@ function updateEnemies(dt) {
     const distToPlayer = Math.hypot(player.x - e.x, player.y - e.y);
     const angleToPlayer = Math.atan2(player.y - e.y, player.x - e.x);
 
-    // Dynamic Attack Modes
     if (e.type === 'tengu') {
-      // Fast swooper that shoots feather needles at interval
       e.shootTimer -= dt;
       if (e.shootTimer <= 0 && distToPlayer < 450) {
         e.shootTimer = 2.4;
         enemyProjectiles.push({
+          type: 'feather',
           x: e.x,
           y: e.y,
-          vx: Math.cos(angleToPlayer) * 260,
-          vy: Math.sin(angleToPlayer) * 260,
+          vx: Math.cos(angleToPlayer) * 270,
+          vy: Math.sin(angleToPlayer) * 270,
           damage: 22,
-          radius: 6,
-          color: '#1E1D1D'
+          radius: 7,
+          color: '#1A1817'
         });
       }
       e.x += Math.cos(angleToPlayer) * e.speed * 60 * dt;
@@ -1520,17 +1532,15 @@ function updateEnemies(dt) {
     }
 
     else if (e.type === 'samurai') {
-      // Katana dash charge with red telegraph line
       e.shootTimer -= dt;
       if (e.state === 'chase') {
         e.x += Math.cos(angleToPlayer) * e.speed * 60 * dt;
         e.y += Math.sin(angleToPlayer) * e.speed * 60 * dt;
         if (e.shootTimer <= 0 && distToPlayer < 220) {
           e.state = 'telegraph';
-          e.stateTimer = 0.6; // Telegraph warning window
+          e.stateTimer = 0.6;
           e.isTelegraphing = true;
           e.telegraphAngle = angleToPlayer;
-          e.dashTarget = { x: player.x, y: player.y };
         }
       } else if (e.state === 'telegraph') {
         e.stateTimer -= dt;
@@ -1551,9 +1561,7 @@ function updateEnemies(dt) {
     }
 
     else if (e.type === 'kitsune') {
-      // Spirits that keep distance and fire homing cyan fireballs
       if (distToPlayer < 180) {
-        // Back off
         e.x -= Math.cos(angleToPlayer) * e.speed * 60 * dt;
         e.y -= Math.sin(angleToPlayer) * e.speed * 60 * dt;
       } else {
@@ -1563,31 +1571,30 @@ function updateEnemies(dt) {
       e.shootTimer -= dt;
       if (e.shootTimer <= 0) {
         e.shootTimer = 2.8;
-        // Fire 2 spiraling spirit bullets
         for (let s = -1; s <= 1; s += 2) {
           const spread = angleToPlayer + s * 0.25;
           enemyProjectiles.push({
+            type: 'fireball',
             x: e.x,
             y: e.y,
-            vx: Math.cos(spread) * 190,
-            vy: Math.sin(spread) * 190,
+            vx: Math.cos(spread) * 200,
+            vy: Math.sin(spread) * 200,
             damage: 26,
-            radius: 8,
-            color: '#00F0FF'
+            radius: 9,
+            color: '#00F5FF'
           });
         }
       }
     }
 
     else if (e.type === 'oni') {
-      // Big Brute: charges ground smash shockwave (danger circle)
       e.shootTimer -= dt;
       if (e.state === 'chase') {
         e.x += Math.cos(angleToPlayer) * e.speed * 60 * dt;
         e.y += Math.sin(angleToPlayer) * e.speed * 60 * dt;
-        if (e.shootTimer <= 0 && distToPlayer < 160) {
+        if (e.shootTimer <= 0 && distToPlayer < 170) {
           e.state = 'smash_windup';
-          e.stateTimer = 0.8; // Dangerous red circle telegraph
+          e.stateTimer = 0.8;
           e.isTelegraphing = true;
         }
       } else if (e.state === 'smash_windup') {
@@ -1596,14 +1603,13 @@ function updateEnemies(dt) {
           e.state = 'chase';
           e.shootTimer = 4.0;
           e.isTelegraphing = false;
-          // Spawn expanding ground smash shockwave
           shockwaves.push({
             x: e.x,
             y: e.y,
             radius: 10,
-            maxRadius: 110,
+            maxRadius: 115,
             damage: 48,
-            color: '#FF1E44'
+            color: '#FF1037'
           });
           audio.playHit();
           screenShake = 12;
@@ -1612,7 +1618,6 @@ function updateEnemies(dt) {
     }
 
     else if (e.type === 'sorcerer') {
-      // Ring bullet fan caster
       e.x += Math.cos(angleToPlayer) * e.speed * 60 * dt;
       e.y += Math.sin(angleToPlayer) * e.speed * 60 * dt;
       e.shootTimer -= dt;
@@ -1621,45 +1626,44 @@ function updateEnemies(dt) {
         for (let a = 0; a < 8; a++) {
           const ringAng = (Math.PI * 2 / 8) * a;
           enemyProjectiles.push({
+            type: 'bullet',
             x: e.x,
             y: e.y,
-            vx: Math.cos(ringAng) * 150,
-            vy: Math.sin(ringAng) * 150,
+            vx: Math.cos(ringAng) * 160,
+            vy: Math.sin(ringAng) * 160,
             damage: 20,
-            radius: 6,
-            color: '#D4AF37'
+            radius: 7,
+            color: '#E5B239'
           });
         }
       }
     }
 
     else if (e.isBoss) {
-      // Multi-phase Boss: Bullet hell + Charge Slashes
       e.x += Math.cos(angleToPlayer) * e.speed * 60 * dt;
       e.y += Math.sin(angleToPlayer) * e.speed * 60 * dt;
       e.shootTimer -= dt;
       if (e.shootTimer <= 0) {
         e.shootTimer = 2.0;
-        // Radial bullet fan
         for (let k = -2; k <= 2; k++) {
           const fanAng = angleToPlayer + k * 0.22;
           enemyProjectiles.push({
+            type: 'boss_bullet',
             x: e.x,
             y: e.y,
-            vx: Math.cos(fanAng) * 220,
-            vy: Math.sin(fanAng) * 220,
+            vx: Math.cos(fanAng) * 230,
+            vy: Math.sin(fanAng) * 230,
             damage: 32,
-            radius: 9,
-            color: '#FF1E44'
+            radius: 10,
+            color: '#FF1037'
           });
         }
       }
-      // Update Boss HP Bar in HUD
       const fill = document.getElementById('boss-hp-fill');
       if (fill) fill.style.width = `${Math.max(0, (e.hp / e.maxHp) * 100)}%`;
     }
 
-    // Direct Body Collision with player (Mitigated by ironBody passive)
+    // Direct collision
     if (distToPlayer < player.radius + e.radius && player.invulnerableTime <= 0) {
       const rawDmg = (e.isBoss ? 45 : 22);
       const actualDmg = rawDmg * player.passives.ironBody;
@@ -1667,10 +1671,10 @@ function updateEnemies(dt) {
       player.invulnerableTime = 0.45;
       audio.playHit();
       screenShake = 6;
-      floatingTexts.push({ x: player.x, y: player.y - 30, text: `-${Math.round(actualDmg)}`, color: '#FF1E44', life: 0.8, size: 18 });
+      floatingTexts.push({ x: player.x, y: player.y - 30, text: `-${Math.round(actualDmg)}`, color: '#FF1037', life: 0.8, size: 18 });
     }
 
-    // Caltrops check
+    // Caltrops hit
     pickables.forEach(pk => {
       if (pk.type === 'caltrop') {
         if (Math.hypot(e.x - pk.x, e.y - pk.y) < 35) {
@@ -1681,13 +1685,12 @@ function updateEnemies(dt) {
       }
     });
 
-    // Check Death
+    // Mob Death
     if (e.hp <= 0) {
       stats.kills++;
       stats.score += e.isBoss ? 2000 : (e.isElite ? 250 : 50);
       player.ultCharge = Math.min(player.ultMax, player.ultCharge + (e.isBoss ? 50 : 4));
 
-      // Drop Experience Magatama
       pickables.push({
         type: 'magatama',
         x: e.x,
@@ -1695,15 +1698,23 @@ function updateEnemies(dt) {
         exp: e.isBoss ? 120 : (e.isElite ? 35 : 10)
       });
 
-      // Death ink particles
-      for (let p = 0; p < (e.isBoss ? 40 : 12); p++) {
+      bloodSplats.push({
+        x: e.x,
+        y: e.y,
+        radius: Math.random() * 20 + 16,
+        color: Math.random() > 0.4 ? 'rgba(255, 16, 55, 0.45)' : 'rgba(26, 24, 23, 0.4)',
+        alpha: 1.0
+      });
+
+      for (let p = 0; p < (e.isBoss ? 35 : 12); p++) {
         particles.push({
+          type: 'inkDrop',
           x: e.x,
           y: e.y,
-          vx: (Math.random() - 0.5) * 240,
-          vy: (Math.random() - 0.5) * 240,
+          vx: (Math.random() - 0.5) * 260,
+          vy: (Math.random() - 0.5) * 260,
           radius: Math.random() * 6 + 2,
-          color: Math.random() > 0.4 ? '#FF1E44' : '#1E1D1D',
+          color: Math.random() > 0.4 ? '#FF1037' : '#1A1817',
           alpha: 1.0,
           decay: 1.8
         });
@@ -1711,7 +1722,7 @@ function updateEnemies(dt) {
 
       if (e.isBoss) {
         document.getElementById('boss-banner').style.display = 'none';
-        floatingTexts.push({ x: e.x, y: e.y - 50, text: '【首領討伐・大成】', color: '#D4AF37', life: 2.0, size: 34 });
+        floatingTexts.push({ x: e.x, y: e.y - 50, text: '【首領討伐・大成】', color: '#E5B239', life: 2.0, size: 34 });
       }
 
       enemies.splice(i, 1);
@@ -1719,27 +1730,22 @@ function updateEnemies(dt) {
   }
 }
 
-/* ==========================================================================
-   ENEMY PROJECTILES & PARRIES
-   ========================================================================== */
 function updateEnemyProjectiles(dt) {
   for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
     const p = enemyProjectiles[i];
     p.x += p.vx * dt;
     p.y += p.vy * dt;
 
-    // Check hit on player
     const dist = Math.hypot(p.x - player.x, p.y - player.y);
     if (dist < p.radius + 14) {
       if (player.dashDuration > 0 || player.invulnerableTime > 0) {
-        // Automatically parried/deflected while dashing!
         stats.parriedBullets++;
         stats.score += 80;
         audio.playParry();
-        floatingTexts.push({ x: p.x, y: p.y - 15, text: '彈反！', color: '#00F0FF', life: 0.8, size: 20 });
+        floatingTexts.push({ x: p.x, y: p.y - 15, text: '彈反！', color: '#00F5FF', life: 0.8, size: 20 });
 
-        // Turn projectile into player's reflected missile
         playerProjectiles.push({
+          type: 'parried',
           x: p.x,
           y: p.y,
           vx: -p.vx * 1.6,
@@ -1747,30 +1753,27 @@ function updateEnemyProjectiles(dt) {
           damage: 150 * player.passives.might,
           radius: 8,
           penetrate: 2,
-          color: '#00F0FF',
+          color: '#00F5FF',
           life: 2.0
         });
         enemyProjectiles.splice(i, 1);
         continue;
       } else {
-        // Player takes hit with armor mitigation (no one-shots)
         const dmg = p.damage * player.passives.ironBody;
         player.hp -= dmg;
         audio.playHit();
         screenShake = 5;
-        floatingTexts.push({ x: player.x, y: player.y - 25, text: `-${Math.round(dmg)}`, color: '#FF1E44', life: 0.8, size: 16 });
+        floatingTexts.push({ x: player.x, y: player.y - 25, text: `-${Math.round(dmg)}`, color: '#FF1037', life: 0.8, size: 16 });
         enemyProjectiles.splice(i, 1);
         continue;
       }
     }
 
-    // Discard far projectiles
     if (Math.hypot(p.x - player.x, p.y - player.y) > 1200) {
       enemyProjectiles.splice(i, 1);
     }
   }
 
-  // Shockwaves
   for (let i = shockwaves.length - 1; i >= 0; i--) {
     const sw = shockwaves[i];
     sw.radius += 180 * dt;
@@ -1780,17 +1783,12 @@ function updateEnemyProjectiles(dt) {
       player.hp -= dmg;
       player.invulnerableTime = 0.4;
       audio.playHit();
-      floatingTexts.push({ x: player.x, y: player.y - 25, text: `-${Math.round(dmg)}`, color: '#FF1E44', life: 0.8, size: 20 });
+      floatingTexts.push({ x: player.x, y: player.y - 25, text: `-${Math.round(dmg)}`, color: '#FF1037', life: 0.8, size: 20 });
     }
-    if (sw.radius >= sw.maxRadius) {
-      shockwaves.splice(i, 1);
-    }
+    if (sw.radius >= sw.maxRadius) shockwaves.splice(i, 1);
   }
 }
 
-/* ==========================================================================
-   PLAYER PROJECTILES
-   ========================================================================== */
 function updatePlayerProjectiles(dt) {
   for (let i = playerProjectiles.length - 1; i >= 0; i--) {
     const p = playerProjectiles[i];
@@ -1798,7 +1796,6 @@ function updatePlayerProjectiles(dt) {
     p.x += p.vx * dt;
     p.y += p.vy * dt;
 
-    // Check hit on enemies
     enemies.forEach(e => {
       if (p.penetrate <= 0) return;
       const d = Math.hypot(p.x - e.x, p.y - e.y);
@@ -1806,9 +1803,9 @@ function updatePlayerProjectiles(dt) {
         e.hp -= p.damage;
         p.penetrate--;
 
-        // Critical ink splash
         for (let k = 0; k < 6; k++) {
           particles.push({
+            type: 'inkDrop',
             x: e.x,
             y: e.y,
             vx: (Math.random() - 0.5) * 160,
@@ -1828,9 +1825,6 @@ function updatePlayerProjectiles(dt) {
   }
 }
 
-/* ==========================================================================
-   PICKABLES & PARTICLES
-   ========================================================================== */
 function updatePickables(dt) {
   for (let i = pickables.length - 1; i >= 0; i--) {
     const item = pickables[i];
@@ -1841,12 +1835,11 @@ function updatePickables(dt) {
       continue;
     }
 
-    // Magatama Exp Orb magnet
     const dist = Math.hypot(player.x - item.x, player.y - item.y);
     if (dist < 180) {
       const angle = Math.atan2(player.y - item.y, player.x - item.x);
-      item.x += Math.cos(angle) * 350 * dt;
-      item.y += Math.sin(angle) * 350 * dt;
+      item.x += Math.cos(angle) * 360 * dt;
+      item.y += Math.sin(angle) * 360 * dt;
     }
 
     if (dist < 26) {
@@ -1876,9 +1869,6 @@ function updateFloatingText(dt) {
   }
 }
 
-/* ==========================================================================
-   GAME OVER & FINAL SCORE TALLY CALCULATION
-   ========================================================================== */
 function triggerGameOver() {
   isGameOver = true;
   document.getElementById('gameover-screen').style.display = 'flex';
@@ -1892,7 +1882,6 @@ function triggerGameOver() {
   document.getElementById('tallyParry').innerText = `${stats.parriedBullets} 發`;
   document.getElementById('tallyLevel').innerText = `Lv. ${player.level}`;
 
-  // Comprehensive Final Score Calculation
   const finalScore = stats.score 
     + (stats.elapsedSeconds * 20) 
     + (stats.kills * 45) 
@@ -1903,17 +1892,14 @@ function triggerGameOver() {
   document.getElementById('tallyFinalScore').innerText = finalScore.toLocaleString();
 }
 
-document.getElementById('restartBtn').onclick = () => {
-  window.location.reload();
-};
+document.getElementById('restartBtn').onclick = () => window.location.reload();
 
 /* ==========================================================================
-   RENDER SYSTEM (JAPANESE OFF-WHITE INK AESTHETIC)
+   HIGH-QUALITY JAPANESE INK RENDERING SYSTEM
    ========================================================================== */
 function render() {
   ctx.save();
 
-  // Screen Shake
   if (screenShake > 0) {
     const sx = (Math.random() - 0.5) * screenShake;
     const sy = (Math.random() - 0.5) * screenShake;
@@ -1923,48 +1909,54 @@ function render() {
 
   ctx.clearRect(0, 0, gameWidth, gameHeight);
 
-  // Camera Follow
   const camX = gameWidth / 2 - player.x;
   const camY = gameHeight / 2 - player.y;
   ctx.translate(camX, camY);
 
-  // 1. Draw Washi Paper Tatami / Zen Garden Grid
-  drawZenBackground();
+  // 1. Washi Background & Decorative Zen Environment
+  drawScenery();
 
-  // 2. Draw Pickables & Ground Caltrops
+  // 2. Ink Splatters on ground
+  drawBloodSplats();
+
+  // 3. Ground Pickables & Caltrops
   drawPickables();
 
-  // 3. Draw Danger Telegraphs (Red Warning Circles & Charge Lines)
+  // 4. Enemy Telegraphs
   drawTelegraphs();
 
-  // 4. Draw Enemies
+  // 5. Enemies with high-res details
   drawEnemies();
 
-  // 5. Draw Projectiles (Player & Enemy)
+  // 6. Projectiles
   drawProjectiles();
 
-  // 6. Draw Player (Handsome Ronin Lone Wolf)
+  // 7. Player (Detailed Ronin with flowing clothes & sword trails)
   drawPlayer();
 
-  // 7. Draw Shockwaves & Particles
+  // 8. Shockwaves & Particles
   drawShockwaves();
   drawParticles();
 
-  // 8. Draw Floating Kanji Texts
+  // 9. Floating Combat Kanji
   drawFloatingTexts();
 
   ctx.restore();
+
+  // 10. Foreground environmental sakura petals (Screen Space)
+  drawForePetals();
 }
 
-function drawZenBackground() {
-  const gridSize = 120;
+function drawScenery() {
+  // Tatami / Zen raked gravel lines
+  const gridSize = 140;
   const startX = Math.floor((player.x - gameWidth) / gridSize) * gridSize;
   const endX = Math.floor((player.x + gameWidth) / gridSize) * gridSize;
   const startY = Math.floor((player.y - gameHeight) / gridSize) * gridSize;
   const endY = Math.floor((player.y + gameHeight) / gridSize) * gridSize;
 
-  ctx.strokeStyle = '#E0DAD0';
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(215, 206, 192, 0.6)';
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
   for (let x = startX; x <= endX; x += gridSize) {
     ctx.moveTo(x, startY);
@@ -1975,111 +1967,314 @@ function drawZenBackground() {
     ctx.lineTo(endX, y);
   }
   ctx.stroke();
+
+  // Zen Stones
+  zenStones.forEach(st => {
+    if (Math.abs(st.x - player.x) < gameWidth && Math.abs(st.y - player.y) < gameHeight) {
+      ctx.save();
+      ctx.translate(st.x, st.y);
+      ctx.rotate(st.angle);
+      // Soft shadow
+      ctx.fillStyle = 'rgba(40, 35, 30, 0.15)';
+      ctx.beginPath();
+      ctx.ellipse(4, 6, st.rx, st.ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Stone
+      ctx.fillStyle = '#CFC7B8';
+      ctx.strokeStyle = '#2D2723';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, st.rx, st.ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+  });
+
+  // Stone Lanterns
+  stoneLanterns.forEach(lt => {
+    if (Math.abs(lt.x - player.x) < gameWidth && Math.abs(lt.y - player.y) < gameHeight) {
+      ctx.save();
+      ctx.translate(lt.x, lt.y);
+      ctx.fillStyle = 'rgba(45, 39, 35, 0.2)';
+      ctx.fillRect(-12, 12, 24, 6);
+      ctx.fillStyle = '#B8AFA0';
+      ctx.strokeStyle = '#2D2723';
+      ctx.lineWidth = 2;
+      ctx.fillRect(-8, -16, 16, 28);
+      ctx.strokeRect(-8, -16, 16, 28);
+      // Roof
+      ctx.beginPath();
+      ctx.moveTo(-16, -16);
+      ctx.lineTo(16, -16);
+      ctx.lineTo(0, -26);
+      ctx.closePath();
+      ctx.fillStyle = '#8C8274';
+      ctx.fill();
+      ctx.stroke();
+      // Lantern light
+      ctx.fillStyle = '#FFE685';
+      ctx.beginPath();
+      ctx.arc(0, -6, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  });
+}
+
+function drawBloodSplats() {
+  if (bloodSplats.length > 50) bloodSplats.shift();
+  bloodSplats.forEach(b => {
+    ctx.save();
+    ctx.fillStyle = b.color;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
 }
 
 function drawTelegraphs() {
   enemies.forEach(e => {
     if (e.isTelegraphing) {
       if (e.type === 'samurai') {
-        // Red Charge Line
-        ctx.strokeStyle = 'rgba(255, 30, 68, 0.55)';
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255, 16, 55, 0.65)';
         ctx.lineWidth = 14;
         ctx.beginPath();
         ctx.moveTo(e.x, e.y);
         ctx.lineTo(e.x + Math.cos(e.telegraphAngle) * 260, e.y + Math.sin(e.telegraphAngle) * 260);
         ctx.stroke();
+        ctx.restore();
       } else if (e.type === 'oni') {
-        // Red Smash Circle
-        ctx.fillStyle = 'rgba(255, 30, 68, 0.2)';
-        ctx.strokeStyle = '#FF1E44';
-        ctx.lineWidth = 2;
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 16, 55, 0.22)';
+        ctx.strokeStyle = '#FF1037';
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.arc(e.x, e.y, 110, 0, Math.PI * 2);
+        ctx.arc(e.x, e.y, 115, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
+        ctx.restore();
       }
     }
   });
 }
 
+/* --------------------------------------------------------------------------
+   DETAILED ENEMY ART
+   -------------------------------------------------------------------------- */
 function drawEnemies() {
   enemies.forEach(e => {
     ctx.save();
     ctx.translate(e.x, e.y);
 
+    const angle = Math.atan2(player.y - e.y, player.x - e.x);
+
     if (e.type === 'tengu') {
-      // Tengu Crow Mask & Feathered Wings
-      ctx.fillStyle = '#1E1D1D';
+      // 烏天狗 (Crow Tengu): Feathery animated wings & red mask
+      const wingFlap = Math.sin(e.animTime * 14) * 0.45;
+      ctx.save();
+      ctx.rotate(angle);
+
+      // Left Wing
+      ctx.save();
+      ctx.rotate(wingFlap);
+      ctx.fillStyle = '#1A1817';
       ctx.beginPath();
-      ctx.ellipse(-14, 0, 14, 6, -0.3, 0, Math.PI * 2);
-      ctx.ellipse(14, 0, 14, 6, 0.3, 0, Math.PI * 2);
+      ctx.moveTo(0, -6);
+      ctx.quadraticCurveTo(-24, -28, -36, -14);
+      ctx.quadraticCurveTo(-18, -6, 0, -2);
       ctx.fill();
-      // Body & Mask
+      ctx.restore();
+
+      // Right Wing
+      ctx.save();
+      ctx.rotate(-wingFlap);
+      ctx.fillStyle = '#1A1817';
       ctx.beginPath();
-      ctx.arc(0, 0, 10, 0, Math.PI * 2);
+      ctx.moveTo(0, 6);
+      ctx.quadraticCurveTo(-24, 28, -36, 14);
+      ctx.quadraticCurveTo(-18, 6, 0, 2);
       ctx.fill();
-      ctx.fillStyle = '#FF1E44';
-      ctx.fillRect(0, -3, 8, 4); // Red beak / nose
+      ctx.restore();
+
+      // Robe body
+      ctx.fillStyle = '#2A2624';
+      ctx.beginPath();
+      ctx.arc(0, 0, 11, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Red Tengu Mask & Long Nose
+      ctx.fillStyle = '#FF1037';
+      ctx.beginPath();
+      ctx.arc(5, 0, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(8, -2);
+      ctx.lineTo(19, 0);
+      ctx.lineTo(8, 2);
+      ctx.fill();
+
+      // Glowing white eye
+      ctx.fillStyle = '#FFF';
+      ctx.beginPath();
+      ctx.arc(6, -2, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
 
     else if (e.type === 'samurai') {
-      // Conical Hat & Armor Sashimono
-      ctx.fillStyle = '#382B29';
-      ctx.beginPath();
-      ctx.arc(0, 0, 14, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#FF1E44';
-      ctx.beginPath();
-      ctx.arc(-4, -2, 2.5, 0, Math.PI * 2);
-      ctx.arc(4, -2, 2.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
+      // 骸骨武者 (Skeleton Samurai): Armor kabuto + sashimono flag
+      ctx.save();
+      ctx.rotate(angle);
 
-    else if (e.type === 'kitsune') {
-      // Mask & 3 Swirling Cyan Tails
-      ctx.fillStyle = 'rgba(0, 240, 255, 0.6)';
-      for (let t = -1; t <= 1; t++) {
-        ctx.beginPath();
-        ctx.ellipse(t * 12, 14, 6, 14, t * 0.4, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.fillStyle = '#FFF';
+      // Battle flag (Sashimono)
+      ctx.strokeStyle = '#2D2723';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(-16, 0);
+      ctx.lineTo(-26, 0);
+      ctx.stroke();
+      ctx.fillStyle = '#FF1037';
+      ctx.fillRect(-26, -12, 10, 24);
+
+      // Skeletal Armor Body
+      ctx.fillStyle = '#DDD5C7';
       ctx.beginPath();
       ctx.arc(0, 0, 12, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#FF1E44';
-      ctx.fillRect(-6, -4, 4, 3);
-      ctx.fillRect(2, -4, 4, 3);
+
+      // Armored Kabuto Hat
+      ctx.fillStyle = '#1A1817';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 15, 9, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Glowing Cyan Eye Sockets
+      ctx.fillStyle = '#00F5FF';
+      ctx.shadowColor = '#00F5FF';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(5, -3, 2, 0, Math.PI * 2);
+      ctx.arc(5, 3, 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    else if (e.type === 'kitsune') {
+      // 幽冥妖狐 (Fox Spirit): 3 animated flowing fire tails & kitsune mask
+      ctx.save();
+      ctx.rotate(angle);
+
+      // 3 Fire Tails
+      for (let t = -1; t <= 1; t++) {
+        const wave = Math.sin(e.animTime * 6 + t) * 4;
+        ctx.fillStyle = 'rgba(0, 245, 255, 0.75)';
+        ctx.shadowColor = '#00F5FF';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.moveTo(-10, t * 6);
+        ctx.quadraticCurveTo(-26 + wave, t * 14 + wave, -36, t * 8);
+        ctx.quadraticCurveTo(-22, t * 2, -10, t * 6);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+
+      // Kitsune White Face Mask
+      ctx.fillStyle = '#FFFDF9';
+      ctx.beginPath();
+      ctx.ellipse(2, 0, 11, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Crimson Whisker Marks
+      ctx.strokeStyle = '#FF1037';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(3, -5); ctx.lineTo(8, -4);
+      ctx.moveTo(3, 5); ctx.lineTo(8, 4);
+      ctx.stroke();
+
+      // Fox Ears
+      ctx.fillStyle = '#FF1037';
+      ctx.beginPath();
+      ctx.moveTo(-4, -8); ctx.lineTo(2, -13); ctx.lineTo(1, -7);
+      ctx.moveTo(-4, 8); ctx.lineTo(2, 13); ctx.lineTo(1, 7);
+      ctx.fill();
+      ctx.restore();
     }
 
     else if (e.type === 'oni') {
-      // Big Red Oni with Horns
-      ctx.fillStyle = '#7A1822';
+      // 赤鬼狂徒 (Red Oni): Massive horns, spiked club
+      ctx.save();
+      ctx.rotate(angle);
+
+      // Body & muscular back
+      ctx.fillStyle = '#8B1825';
       ctx.beginPath();
       ctx.arc(0, 0, 24, 0, Math.PI * 2);
       ctx.fill();
-      // Horns
-      ctx.fillStyle = '#D4AF37';
+
+      // Golden Demon Horns
+      ctx.fillStyle = '#E5B239';
       ctx.beginPath();
-      ctx.moveTo(-10, -20); ctx.lineTo(-14, -34); ctx.lineTo(-4, -22);
-      ctx.moveTo(10, -20); ctx.lineTo(14, -34); ctx.lineTo(4, -22);
+      ctx.moveTo(2, -16); ctx.lineTo(10, -28); ctx.lineTo(8, -14);
+      ctx.moveTo(2, 16); ctx.lineTo(10, 28); ctx.lineTo(8, 14);
       ctx.fill();
+
+      // Fierce glowing eyes
+      ctx.fillStyle = '#FFE685';
+      ctx.beginPath();
+      ctx.arc(10, -6, 3, 0, Math.PI * 2);
+      ctx.arc(10, 6, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Spiked Kanabo Club
+      ctx.fillStyle = '#1A1817';
+      ctx.fillRect(8, 16, 26, 7);
+      ctx.fillStyle = '#DDD5C7';
+      ctx.beginPath();
+      ctx.arc(22, 14, 2, 0, Math.PI * 2);
+      ctx.arc(28, 14, 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
 
     else if (e.isBoss) {
-      // Imposing Golden Horns & Demonic Crown
-      ctx.fillStyle = '#1E1D1D';
-      ctx.beginPath();
-      ctx.arc(0, 0, 36, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#FF1E44';
+      // Boss: Magnificent Shura Demon
+      ctx.save();
+      ctx.rotate(angle);
+
+      // Demonic Aura
+      const auraPulse = 36 + Math.sin(e.animTime * 8) * 4;
+      ctx.strokeStyle = 'rgba(255, 16, 55, 0.55)';
       ctx.lineWidth = 4;
+      ctx.shadowColor = '#FF1037';
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      ctx.arc(0, 0, auraPulse, 0, Math.PI * 2);
       ctx.stroke();
 
-      ctx.fillStyle = '#D4AF37';
+      // Boss Armor Body
+      ctx.fillStyle = '#1A1817';
+      ctx.beginPath();
+      ctx.arc(0, 0, 32, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Golden Crown & Horns
+      ctx.fillStyle = '#E5B239';
+      ctx.beginPath();
+      ctx.moveTo(-10, -25); ctx.lineTo(12, -42); ctx.lineTo(6, -20);
+      ctx.moveTo(-10, 25); ctx.lineTo(12, 42); ctx.lineTo(6, 20);
+      ctx.fill();
+
+      // Calligraphy Center
+      ctx.fillStyle = '#FFF';
       ctx.font = 'bold 24px serif';
       ctx.textAlign = 'center';
-      ctx.fillText('鬼', 0, 8);
+      ctx.textBaseline = 'middle';
+      ctx.fillText('鬼', 0, 0);
+      ctx.restore();
     }
 
     else {
@@ -2089,86 +2284,158 @@ function drawEnemies() {
       ctx.fill();
     }
 
-    // Health Bar for Elite / Big Enemies
-    if (e.hp < e.maxHp) {
+    // Health Bar for Elite / Boss
+    if (e.hp < e.maxHp && !e.isBoss) {
       const bw = e.radius * 2;
-      ctx.fillStyle = 'rgba(0,0,0,0.5)';
-      ctx.fillRect(-bw/2, -e.radius - 10, bw, 4);
-      ctx.fillStyle = '#FF1E44';
-      ctx.fillRect(-bw/2, -e.radius - 10, bw * (e.hp / e.maxHp), 4);
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(-bw/2, -e.radius - 12, bw, 4);
+      ctx.fillStyle = '#FF1037';
+      ctx.fillRect(-bw/2, -e.radius - 12, bw * (e.hp / e.maxHp), 4);
     }
 
     ctx.restore();
   });
 }
 
+/* --------------------------------------------------------------------------
+   DETAILED PLAYER ART & ANIMATION (緋刃浪人・孤狼)
+   -------------------------------------------------------------------------- */
 function drawPlayer() {
   ctx.save();
   ctx.translate(player.x, player.y);
-
-  // Rotate facing angle
   ctx.rotate(player.facingAngle);
 
-  // Flowing Ink Haori Coat (Charcoal)
-  ctx.fillStyle = '#1E1D1D';
+  const walkOffset = player.isMoving ? Math.sin(player.walkCycle) * 3 : 0;
+  const capeWave = Math.sin(player.animTime * 8) * 4;
+
+  // 1. Flowing Charcoal Haori Cape (Layered)
+  ctx.fillStyle = '#1A1817';
   ctx.beginPath();
-  ctx.ellipse(-6, 0, 16, 12, 0, 0, Math.PI * 2);
+  ctx.moveTo(-10, -12);
+  ctx.quadraticCurveTo(-26 + capeWave, -16, -34, -4);
+  ctx.quadraticCurveTo(-24, 0, -34, 4);
+  ctx.quadraticCurveTo(-26 - capeWave, 16, -10, 12);
+  ctx.closePath();
   ctx.fill();
 
-  // Ronin Scarf & Crimson Belt
-  ctx.fillStyle = '#FF1E44';
-  ctx.fillRect(-4, -10, 6, 20);
-
-  // Head & Ponytail
-  ctx.fillStyle = '#2B2A29';
+  // 2. White Kimono Underlayer
+  ctx.fillStyle = '#ECE6D8';
   ctx.beginPath();
-  ctx.arc(4, 0, 9, 0, Math.PI * 2);
+  ctx.ellipse(-2 + walkOffset, 0, 14, 11, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Katana Scabbard
-  ctx.strokeStyle = '#D4AF37';
+  // 3. Cinnabar Crimson Sash (Obi)
+  ctx.fillStyle = '#FF1037';
+  ctx.fillRect(-6 + walkOffset, -10, 6, 20);
+
+  // 4. Ronin Head & Ponytail Hair
+  ctx.fillStyle = '#2A2624';
+  ctx.beginPath();
+  ctx.arc(5 + walkOffset, 0, 9, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Ponytail swinging behind
+  ctx.beginPath();
+  ctx.moveTo(0 + walkOffset, -2);
+  ctx.quadraticCurveTo(-14, -6 - capeWave, -22, -10);
+  ctx.quadraticCurveTo(-12, -2, 0 + walkOffset, 2);
+  ctx.fill();
+
+  // 5. Vermilion Headband / Eye-Band
+  ctx.fillStyle = '#FF1037';
+  ctx.fillRect(4 + walkOffset, -7, 4, 14);
+
+  // 6. Katana Sheath & Grip
+  ctx.strokeStyle = '#E5B239';
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(-10, 12);
+  ctx.moveTo(-12, 12);
   ctx.lineTo(8, 12);
   ctx.stroke();
 
-  // Active Parry Shield Indicator
-  if (player.dashDuration > 0 || player.invulnerableTime > 0) {
-    ctx.strokeStyle = '#00F0FF';
-    ctx.shadowColor = '#00F0FF';
+  // 7. Dynamic Blade Slash Arc (When attacking)
+  if (player.slashAnim > 0) {
+    ctx.save();
+    ctx.strokeStyle = '#00F5FF';
+    ctx.lineWidth = 5;
+    ctx.shadowColor = '#00F5FF';
     ctx.shadowBlur = 14;
-    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(0, 0, 28, 0, Math.PI * 2);
+    ctx.arc(6, 0, 44, -Math.PI / 3, Math.PI / 3);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 8. Parry / Mikiri Shield Aura
+  if (player.dashDuration > 0 || player.invulnerableTime > 0) {
+    ctx.strokeStyle = '#00F5FF';
+    ctx.shadowColor = '#00F5FF';
+    ctx.shadowBlur = 16;
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, 32, 0, Math.PI * 2);
     ctx.stroke();
   }
 
   ctx.restore();
 }
 
+/* --------------------------------------------------------------------------
+   DETAILED PROJECTILES & PARTICLES
+   -------------------------------------------------------------------------- */
 function drawProjectiles() {
-  // 1. Enemy Bullets
+  // Enemy Projectiles
   enemyProjectiles.forEach(p => {
     ctx.save();
-    ctx.fillStyle = p.color;
-    ctx.shadowColor = p.color;
-    ctx.shadowBlur = 8;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.translate(p.x, p.y);
+    if (p.type === 'feather') {
+      const ang = Math.atan2(p.vy, p.vx);
+      ctx.rotate(ang);
+      ctx.fillStyle = '#1A1817';
+      ctx.beginPath();
+      ctx.moveTo(-8, 0); ctx.lineTo(10, 0); ctx.lineTo(2, 3); ctx.lineTo(-8, 0);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   });
 
-  // 2. Player Projectiles
+  // Player Projectiles
   playerProjectiles.forEach(p => {
     ctx.save();
-    ctx.fillStyle = p.color;
-    ctx.shadowColor = p.color;
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.translate(p.x, p.y);
+
+    if (p.type === 'iaijutsu') {
+      ctx.rotate(p.angle);
+      ctx.strokeStyle = '#00F5FF';
+      ctx.shadowColor = '#00F5FF';
+      ctx.shadowBlur = 16;
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(0, 0, 36, -Math.PI / 3.2, Math.PI / 3.2);
+      ctx.stroke();
+    } else if (p.type === 'ofuda') {
+      ctx.rotate(p.angle);
+      ctx.fillStyle = '#FF1037';
+      ctx.shadowColor = '#FF1037';
+      ctx.shadowBlur = 10;
+      ctx.fillRect(-7, -12, 14, 24);
+      ctx.fillStyle = '#FFE5A3';
+      ctx.fillRect(-2, -6, 4, 12);
+    } else {
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   });
 }
@@ -2177,15 +2444,22 @@ function drawPickables() {
   pickables.forEach(pk => {
     if (pk.type === 'magatama') {
       ctx.save();
-      ctx.fillStyle = '#00F0FF';
-      ctx.shadowColor = '#00F0FF';
-      ctx.shadowBlur = 8;
+      ctx.translate(pk.x, pk.y);
+      ctx.fillStyle = '#00F5FF';
+      ctx.shadowColor = '#00F5FF';
+      ctx.shadowBlur = 10;
+      // Magatama comma shape
       ctx.beginPath();
-      ctx.arc(pk.x, pk.y, 6, 0, Math.PI * 2);
+      ctx.arc(0, -3, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(4, -3);
+      ctx.quadraticCurveTo(6, 6, 0, 8);
+      ctx.quadraticCurveTo(2, 4, -4, -3);
       ctx.fill();
       ctx.restore();
     } else if (pk.type === 'caltrop') {
-      ctx.fillStyle = '#1E1D1D';
+      ctx.fillStyle = '#1A1817';
       ctx.beginPath();
       ctx.arc(pk.x, pk.y, 5, 0, Math.PI * 2);
       ctx.fill();
@@ -2198,6 +2472,8 @@ function drawShockwaves() {
     ctx.save();
     ctx.strokeStyle = sw.color;
     ctx.lineWidth = 4;
+    ctx.shadowColor = sw.color;
+    ctx.shadowBlur = 10;
     ctx.beginPath();
     ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
     ctx.stroke();
@@ -2208,11 +2484,17 @@ function drawShockwaves() {
 function drawParticles() {
   particles.forEach(p => {
     ctx.save();
-    ctx.globalAlpha = p.alpha;
+    ctx.globalAlpha = Math.max(0, p.alpha);
     ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-    ctx.fill();
+    if (p.type === 'brushTrail') {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   });
 }
@@ -2222,11 +2504,24 @@ function drawFloatingTexts() {
     ctx.save();
     ctx.globalAlpha = Math.max(0, f.life);
     ctx.fillStyle = f.color;
-    ctx.font = `bold ${f.size || 20}px 'Hiragino Mincho ProN', serif`;
+    ctx.font = `bold ${f.size || 22}px 'Yu Mincho', serif`;
     ctx.textAlign = 'center';
-    ctx.shadowColor = 'rgba(0,0,0,0.4)';
-    ctx.shadowBlur = 4;
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 6;
     ctx.fillText(f.text, f.x, f.y);
+    ctx.restore();
+  });
+}
+
+function drawForePetals() {
+  petals.forEach(p => {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+    ctx.fillStyle = 'rgba(255, 92, 122, 0.7)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
   });
 }
