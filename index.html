@@ -1,1427 +1,2446 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>竹林行者：百鬼滅殺譚</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: none;
-    }
-    body, html {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background-color: #EDE8DF;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
-      color: #242220;
-    }
-    #game-container {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background: radial-gradient(circle at center, #F8F5EE 0%, #EDE6D8 100%);
-    }
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>吸血鬼倖存者：竹隱修羅・熊貓浪人傳</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for sleek UI icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Zen Calligraphy & Serif -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Shippori+Mincho:wght@500;700;900&display=swap" rel="stylesheet">
 
-    /* 頂部 HUD */
-    #hud-top {
-      position: absolute;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      pointer-events: none;
-      z-index: 20;
-      width: 90%;
-      max-width: 780px;
-    }
-    #exp-bar-container {
-      width: 100%;
-      height: 14px;
-      background: rgba(220, 214, 202, 0.85);
-      border: 2px solid #2B2A29;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1), inset 0 2px 4px rgba(0,0,0,0.1);
-      position: relative;
-    }
-    #exp-bar-fill {
-      width: 0%;
-      height: 100%;
-      background: linear-gradient(90deg, #00C2FF, #00F0FF);
-      box-shadow: 0 0 12px rgba(0, 240, 255, 0.7);
-      transition: width 0.15s ease-out;
-    }
-    .hud-meta-row {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      font-weight: 800;
-      font-size: 14px;
-      color: #2B2A29;
-      letter-spacing: 1px;
-      text-shadow: 0 1px 2px rgba(255,255,255,0.8);
-      padding: 0 4px;
-    }
-    .badge {
-      background: #2B2A29;
-      color: #F8F5EE;
-      padding: 2px 8px;
-      border-radius: 4px;
-      margin-right: 4px;
-      font-weight: 900;
-    }
-    .badge-hp {
-      background: #FF1E44;
-      color: #FFF;
-      box-shadow: 0 2px 6px rgba(255, 30, 68, 0.4);
-    }
-    .badge-cyan {
-      background: #008ba3;
-      color: #FFF;
-    }
-
-    /* 快捷狀態儀表盤 (底部) */
-    #skills-tray {
-      position: absolute;
-      bottom: 16px;
-      left: 16px;
-      display: flex;
-      gap: 8px;
-      pointer-events: none;
-      z-index: 20;
-    }
-    .skill-icon-chip {
-      background: rgba(248, 245, 238, 0.95);
-      border: 2px solid #2B2A29;
-      border-radius: 8px;
-      padding: 4px 8px;
-      font-size: 12px;
-      font-weight: 800;
-      color: #2B2A29;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .skill-level-dot {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #00F0FF;
-      box-shadow: 0 0 6px #00F0FF;
-    }
-
-    /* Boss 警報與專用血條 */
-    #boss-hud {
-      position: absolute;
-      top: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 82%;
-      max-width: 600px;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      z-index: 21;
-      pointer-events: none;
-      animation: bannerSlide 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-    }
-    @keyframes bannerSlide {
-      from { opacity: 0; transform: translate(-50%, -20px); }
-      to { opacity: 1; transform: translate(-50%, 0); }
-    }
-    #boss-name {
-      font-size: 16px;
-      font-weight: 900;
-      color: #C93B2B;
-      letter-spacing: 2px;
-      text-shadow: 0 2px 4px rgba(255,255,255,0.9);
-    }
-    #boss-hp-box {
-      width: 100%;
-      height: 12px;
-      background: rgba(43, 42, 41, 0.7);
-      border: 2px solid #2B2A29;
-      border-radius: 6px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(201, 59, 43, 0.35);
-    }
-    #boss-hp-fill {
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, #FF1E44, #FF7B00);
-      transition: width 0.1s ease;
-    }
-
-    /* 奧義與冷卻提示 */
-    #ult-meter-wrap {
-      position: absolute;
-      right: 18px;
-      bottom: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 10px;
-      z-index: 25;
-      pointer-events: auto;
-    }
-    .action-btn {
-      width: 68px;
-      height: 68px;
-      border-radius: 50%;
-      border: 3px solid #2B2A29;
-      background: #FAF8F2;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-weight: 900;
-      font-size: 13px;
-      color: #2B2A29;
-      cursor: pointer;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.18), inset 0 2px 4px rgba(255,255,255,0.9);
-      transition: transform 0.08s ease, filter 0.2s ease;
-      position: relative;
-      touch-action: none;
-    }
-    .action-btn:active {
-      transform: scale(0.92);
-    }
-    #btn-parry {
-      background: radial-gradient(circle, #E6F9FF 0%, #C4EDFC 100%);
-      border-color: #007799;
-    }
-    #btn-parry.cooldown {
-      filter: grayscale(0.8) opacity(0.6);
-      pointer-events: none;
-    }
-    #btn-dash {
-      background: radial-gradient(circle, #FFF4E8 0%, #FFE2C2 100%);
-      border-color: #B35900;
-    }
-    #btn-dash.cooldown {
-      filter: grayscale(0.8) opacity(0.6);
-      pointer-events: none;
-    }
-    #btn-ult {
-      background: radial-gradient(circle, #FFF0F2 0%, #FFD6DD 100%);
-      border-color: #C93B2B;
-    }
-    #btn-ult.ready {
-      animation: pulseGlow 1.2s infinite alternate;
-      border-color: #FF1E44;
-      background: radial-gradient(circle, #FFE4E8 0%, #FFA8B6 100%);
-    }
-    @keyframes pulseGlow {
-      from { box-shadow: 0 0 10px rgba(255, 30, 68, 0.4), inset 0 0 8px rgba(255, 30, 68, 0.3); }
-      to { box-shadow: 0 0 24px rgba(255, 30, 68, 0.9), inset 0 0 14px rgba(255, 30, 68, 0.6); }
-    }
-    .key-hint {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      background: #2B2A29;
-      color: #FFF;
-      font-size: 10px;
-      padding: 2px 5px;
-      border-radius: 4px;
-      border: 1px solid #FAF8F2;
-    }
-
-    /* 虛擬搖桿 */
-    #joystick-zone {
-      position: absolute;
-      bottom: 24px;
-      left: 20px;
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      background: rgba(220, 214, 202, 0.35);
-      border: 2px dashed rgba(43, 42, 41, 0.3);
-      display: none;
-      z-index: 25;
-      touch-action: none;
-    }
-    #joystick-thumb {
-      position: absolute;
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #FAF8F2 0%, #D4CEBF 100%);
-      border: 3px solid #2B2A29;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-      top: 44px;
-      left: 44px;
-      pointer-events: none;
-    }
-
-    /* 升級繪馬對話框 (3選1 + 招式動態預覽) */
-    #level-up-modal {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(36, 34, 32, 0.65);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      z-index: 50;
-      padding: 16px;
-    }
-    #modal-title {
-      font-size: 28px;
-      font-weight: 900;
-      color: #FAF8F2;
-      letter-spacing: 4px;
-      margin-bottom: 20px;
-      text-shadow: 0 3px 10px rgba(0,0,0,0.6);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    #modal-title::before, #modal-title::after {
-      content: "✦";
-      color: #00F0FF;
-    }
-    #cards-container {
-      display: flex;
-      gap: 18px;
-      max-width: 980px;
-      width: 100%;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .ema-card {
-      width: 280px;
-      background: #FDFBF7;
-      border: 3px solid #2B2A29;
-      border-radius: 14px;
-      padding: 16px;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      box-shadow: 0 12px 24px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.9);
-      transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.16s ease, border-color 0.16s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    .ema-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 18px 32px rgba(0,0,0,0.45);
-      border-color: #C93B2B;
-    }
-    .ema-card.evolved {
-      border-color: #FF1E44;
-      background: linear-gradient(180deg, #FFF8F9 0%, #FFE8EC 100%);
-    }
-    .ema-stamp {
-      position: absolute;
-      top: -12px;
-      right: -12px;
-      width: 50px;
-      height: 50px;
-      border: 2px solid #C93B2B;
-      color: #C93B2B;
-      font-weight: 900;
-      font-size: 11px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      transform: rotate(18deg);
-      border-radius: 50%;
-      pointer-events: none;
-      letter-spacing: 1px;
-    }
-    /* 卡片上的動態即時招式預覽畫布 */
-    .ema-preview-canvas {
-      width: 130px;
-      height: 100px;
-      border: 2px dashed #C5BDB0;
-      border-radius: 8px;
-      background: #F4EFE6;
-      margin-bottom: 12px;
-      box-shadow: inset 0 2px 6px rgba(0,0,0,0.06);
-    }
-    .card-name {
-      font-size: 19px;
-      font-weight: 900;
-      color: #242220;
-      margin-bottom: 4px;
-      letter-spacing: 1px;
-    }
-    .card-type {
-      font-size: 12px;
-      font-weight: 800;
-      color: #008ba3;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .card-desc {
-      font-size: 13px;
-      line-height: 1.5;
-      color: #55524E;
-      text-align: center;
-      font-weight: 600;
-    }
-
-    /* 結束結算畫面 */
-    #game-over-modal {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(20, 18, 16, 0.85);
-      backdrop-filter: blur(6px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      z-index: 60;
-      color: #FAF8F2;
-      padding: 24px;
-    }
-    #game-over-box {
-      background: #FAF8F2;
-      border: 4px solid #2B2A29;
-      border-radius: 16px;
-      padding: 32px 40px;
-      max-width: 460px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #242220;
-      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
-    }
-    #game-over-box h2 {
-      font-size: 32px;
-      font-weight: 900;
-      color: #C93B2B;
-      letter-spacing: 3px;
-      margin-bottom: 16px;
-    }
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      font-size: 16px;
-      font-weight: 700;
-      margin: 8px 0;
-      border-bottom: 1px dashed #DDD5C7;
-      padding-bottom: 6px;
-    }
-    #btn-restart {
-      margin-top: 22px;
-      background: #2B2A29;
-      color: #FAF8F2;
-      border: none;
-      padding: 12px 34px;
-      font-size: 18px;
-      font-weight: 900;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-      transition: transform 0.1s, background 0.2s;
-    }
-    #btn-restart:hover {
-      background: #C93B2B;
-      transform: scale(1.04);
-    }
-  </style>
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #ECE7DE;
+            font-family: 'Noto Serif TC', 'Shippori Mincho', serif;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        /* Authentic Japanese Washi Rice Paper Texture */
+        .washi-bg {
+            background-color: #F6F3EC;
+            background-image: 
+                radial-gradient(#DCD4C6 0.8px, transparent 0.8px),
+                radial-gradient(#DCD4C6 0.8px, #F6F3EC 0.8px);
+            background-size: 28px 28px;
+            background-position: 0 0, 14px 14px;
+        }
+        /* Vermilion Hanko Seal Stamp */
+        .hanko-stamp {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #C93B2B;
+            color: #C93B2B;
+            font-weight: 900;
+            border-radius: 4px;
+            padding: 2px 6px;
+            transform: rotate(-3deg);
+            box-shadow: inset 0 0 4px rgba(201, 59, 43, 0.2);
+            font-family: 'Shippori Mincho', serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D8CEBE;
+            border-radius: 4px;
+        }
+    </style>
 </head>
-<body>
+<body class="relative washi-bg text-[#2B2A29]">
 
-<div id="game-container">
-  <canvas id="gameCanvas"></canvas>
+    <!-- Game Canvas Viewport -->
+    <canvas id="gameCanvas"></canvas>
 
-  <!-- 頂部資訊欄 -->
-  <div id="hud-top">
-    <div id="exp-bar-container">
-      <div id="exp-bar-fill"></div>
+    <!-- UI Overlay (HUD) -->
+    <div id="ui-container" class="absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-5">
+        <!-- Top Bar: Exp Bar, Panda HP, Parry Cooldown, Ult, Timer, Kills -->
+        <div class="flex flex-col gap-2 w-full max-w-4xl mx-auto pointer-events-auto">
+            <!-- Experience Progress Bar -->
+            <div class="flex items-center gap-3 bg-[#FAF8F5]/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#DCD3C5] shadow-sm">
+                <span class="text-xs font-black text-[#00A86B] font-serif whitespace-nowrap flex items-center gap-1">
+                    <span class="hanko-stamp text-[10px] py-0 px-1 border-[#00A86B] text-[#00A86B]">竹</span>
+                    <span id="hud-level">壹段</span>
+                </span>
+                <div class="w-full bg-[#E5DFD3] h-2.5 rounded-full overflow-hidden relative shadow-inner">
+                    <div id="hud-exp-fill" class="h-full bg-gradient-to-r from-[#00F2FF] to-[#0099FF] rounded-full transition-all duration-200" style="width: 0%;"></div>
+                </div>
+                <span id="hud-exp-txt" class="text-[11px] font-mono text-[#6E675F] whitespace-nowrap font-bold">0 / 25</span>
+            </div>
+
+            <!-- Top Dashboard: Health, Parry Status, Dash, Timer, Kills -->
+            <div class="flex items-center justify-between gap-2 mt-1">
+                <!-- Panda HP & Parry Stamina -->
+                <div class="flex flex-col gap-1 w-48 sm:w-64 bg-[#FAF8F5]/90 backdrop-blur-md p-2 rounded-xl border border-[#DCD3C5] shadow-sm">
+                    <div class="flex items-center justify-between text-xs font-bold font-serif">
+                        <span class="text-[#00A86B] flex items-center gap-1.5">
+                            <i class="fa-solid fa-paw"></i> 熊貓體魄
+                        </span>
+                        <span id="hud-hp-txt" class="font-mono text-[11px] text-[#2B2A29]">380 / 380</span>
+                    </div>
+                    <div class="w-full bg-[#E5DFD3] h-2.5 rounded-full overflow-hidden">
+                        <div id="hud-hp-fill" class="h-full bg-gradient-to-r from-[#00D084] to-[#00A86B] transition-all duration-150" style="width: 100%;"></div>
+                    </div>
+
+                    <!-- Parry & Dash Gauge -->
+                    <div class="flex items-center justify-between text-[10px] font-bold font-serif mt-0.5">
+                        <span class="text-[#008899] flex items-center gap-1">
+                            <i class="fa-solid fa-shield-halved"></i> 居合彈反 (Space)
+                        </span>
+                        <span id="hud-parry-txt" class="font-mono text-[9px] text-[#0098A6]">準備就緒</span>
+                    </div>
+                    <div class="w-full bg-[#E5DFD3] h-1.5 rounded-full overflow-hidden">
+                        <div id="hud-parry-fill" class="h-full bg-[#00F2FF] transition-all duration-100" style="width: 100%;"></div>
+                    </div>
+                </div>
+
+                <!-- Timer & Combo Banner -->
+                <div class="flex flex-col items-center">
+                    <div class="bg-[#FAF8F5]/90 backdrop-blur-md px-4 py-1.5 rounded-xl border border-[#DCD3C5] shadow-sm flex items-center gap-2 font-mono font-black text-base sm:text-lg text-[#2B2A29]">
+                        <i class="fa-regular fa-clock text-[#00A86B]"></i>
+                        <span id="hud-timer">00:00</span>
+                    </div>
+                    <!-- Combo Counter -->
+                    <div id="hud-combo-badge" class="mt-1 px-2.5 py-0.5 rounded-md bg-[#2B2A29] text-[#FAF8F5] text-xs font-serif font-black flex items-center gap-1.5 shadow-sm transition-all duration-150 opacity-0 transform scale-90">
+                        <span class="text-[#00F2FF]">斬</span>
+                        <span id="hud-combo" class="font-mono text-sm text-[#00F2FF]">0</span> 連擊
+                    </div>
+                </div>
+
+                <!-- Ultimate Skill & Monster Kills -->
+                <div class="flex items-center gap-2">
+                    <!-- Ult Ready Orb -->
+                    <div id="hud-ult-container" class="relative group cursor-pointer flex flex-col items-center justify-center bg-[#FAF8F5]/90 backdrop-blur-md w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-2 border-[#DCD3C5] shadow-sm transition-all duration-300">
+                        <div id="hud-ult-glow" class="absolute inset-0 rounded-2xl bg-[#00F2FF]/0 transition-all duration-300"></div>
+                        <i class="fa-solid fa-dragon text-lg sm:text-xl text-[#A69C8E] transition-all duration-300" id="hud-ult-icon"></i>
+                        <span class="text-[9px] font-black text-[#5C554B] font-mono mt-0.5" id="hud-ult-pct">0%</span>
+                        <span class="absolute -bottom-2 text-[9px] font-bold bg-[#2B2A29] text-white px-1.5 rounded hidden sm:block">E 奧義</span>
+                    </div>
+
+                    <!-- Kill Counter -->
+                    <div class="bg-[#FAF8F5]/90 backdrop-blur-md px-3 py-2 rounded-xl border border-[#DCD3C5] shadow-sm flex flex-col items-center justify-center min-w-[70px]">
+                        <span class="text-[10px] font-bold text-[#8A7F71] font-serif">討伐魔首</span>
+                        <div class="flex items-center gap-1 font-mono font-black text-sm sm:text-base text-[#C93B2B]">
+                            <i class="fa-solid fa-skull"></i>
+                            <span id="hud-kills">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Screen Boss Announcement Banner -->
+        <div id="hud-toast-banner" class="absolute top-28 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none transition-all duration-300 opacity-0 translate-y-3 z-30">
+            <div id="toast-title" class="text-2xl sm:text-4xl font-black text-[#FF2A4D] font-serif tracking-widest drop-shadow-[0_2px_12px_rgba(255,42,77,0.4)]">
+                【羅剎般若・牛頭鬼神 降臨】
+            </div>
+            <div id="toast-sub" class="text-xs sm:text-sm font-bold text-[#2B2A29] bg-[#FAF8F5]/95 px-3 py-1 rounded-full border border-[#DCD3C5] mt-1 shadow">
+                妖氣沖天！善用居合彈反反彈妖彈，斬滅邪神！
+            </div>
+        </div>
+
+        <!-- Bottom Controls & Active Weapons List -->
+        <div class="flex justify-between items-end w-full max-w-5xl mx-auto pointer-events-auto mt-auto">
+            <!-- Active Skills (Bottom Left) -->
+            <div class="flex items-center gap-1.5 bg-[#FAF8F5]/90 backdrop-blur-md p-1.5 rounded-xl border border-[#DCD3C5] shadow-sm overflow-x-auto max-w-[50vw]">
+                <div class="text-[10px] font-serif font-black px-1 text-[#8A7F71]">術式</div>
+                <div id="hud-weapon-list" class="flex gap-1.5"></div>
+            </div>
+
+            <!-- Mobile Controls (Virtual Buttons) -->
+            <div class="flex gap-3 items-center sm:hidden">
+                <!-- Mobile Parry Button -->
+                <button id="btn-touch-parry" class="w-16 h-16 rounded-full bg-gradient-to-tr from-[#0099FF] to-[#00F2FF] text-white flex flex-col items-center justify-center font-bold shadow-lg border-2 border-white active:scale-95 transition-transform">
+                    <i class="fa-solid fa-shield-halved text-lg"></i>
+                    <span class="text-[10px] font-serif">彈反</span>
+                </button>
+                <!-- Mobile Dash Button -->
+                <button id="btn-touch-dash" class="w-14 h-14 rounded-full bg-[#2B2A29] text-[#FAF8F5] flex flex-col items-center justify-center font-bold shadow-lg border-2 border-[#DCD3C5] active:scale-95 transition-transform">
+                    <i class="fa-solid fa-wind text-base text-[#00F2FF]"></i>
+                    <span class="text-[9px] font-serif">疾風</span>
+                </button>
+                <!-- Mobile Ult Button -->
+                <button id="btn-touch-ult" class="w-14 h-14 rounded-full bg-gradient-to-tr from-[#00A86B] to-[#00F2FF] text-white flex flex-col items-center justify-center font-bold shadow-lg border-2 border-white active:scale-95 transition-transform">
+                    <i class="fa-solid fa-dragon text-base"></i>
+                    <span class="text-[9px] font-serif">奧義</span>
+                </button>
+            </div>
+        </div>
     </div>
-    <div class="hud-meta-row">
-      <div>
-        <span class="badge" id="hud-level">階位 壹</span>
-        <span class="badge badge-hp" id="hud-hp">命 350 / 350</span>
-      </div>
-      <div>
-        <span class="badge badge-cyan" id="hud-kills">斬妖: 0</span>
-        <span class="badge" id="hud-time">存活: 00:00</span>
-      </div>
+
+    <!-- Upgrade Screen (3 Ema Plaque Cards with Live Animation Preview) -->
+    <div id="screen-upgrade" class="absolute inset-0 z-50 flex items-center justify-center bg-[#1D1B1A]/80 backdrop-blur-md p-4 hidden">
+        <div class="max-w-4xl w-full flex flex-col items-center">
+            <div class="text-center mb-5">
+                <div class="inline-flex items-center gap-2 mb-1">
+                    <span class="hanko-stamp text-sm bg-white/10 px-2 py-0.5">竹林參悟</span>
+                    <h2 class="text-3xl sm:text-4xl font-black text-[#FAF8F5] font-serif tracking-widest drop-shadow">繪馬神諭・選定術式</h2>
+                </div>
+                <p class="text-[#DCD3C5] text-xs sm:text-sm font-serif">熊貓大俠靈台澄明，凝鍊水墨青竹神通</p>
+            </div>
+
+            <!-- Cards Deck Container -->
+            <div id="upgrade-card-deck" class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full"></div>
+        </div>
     </div>
-  </div>
 
-  <!-- Boss 專用血條 -->
-  <div id="boss-hud">
-    <div id="boss-name">【 八岐赤蛇之影 】</div>
-    <div id="boss-hp-box">
-      <div id="boss-hp-fill"></div>
+    <!-- Start Screen -->
+    <div id="screen-start" class="absolute inset-0 z-50 flex items-center justify-center bg-[#ECE7DE]/95 backdrop-blur-md p-4">
+        <div class="max-w-xl w-full bg-[#FAF8F5] border-2 border-[#2B2A29] p-6 sm:p-8 rounded-2xl shadow-2xl text-center relative washi-bg">
+            <div class="mb-4">
+                <span class="hanko-stamp text-sm mb-2">水墨萌俠・極限求生</span>
+                <h1 class="text-3xl sm:text-5xl font-black text-[#2B2A29] font-serif tracking-widest mt-1">竹隱修羅・熊貓浪人</h1>
+                <p class="text-xs sm:text-sm text-[#7D7365] font-serif mt-1">功夫熊貓・居合彈反・神話百鬼夜行</p>
+            </div>
+
+            <div class="space-y-3 text-left bg-[#F2ECE1] p-4 rounded-xl border border-[#DCD3C5] text-xs sm:text-sm font-serif text-[#4A443C] mb-6">
+                <div class="flex items-start gap-2.5">
+                    <span class="text-[#00A86B] text-base"><i class="fa-solid fa-gamepad"></i></span>
+                    <div><b>熊貓身法：</b><kbd class="px-1.5 py-0.5 bg-white rounded border border-[#DCD3C5] text-[11px] font-mono">WASD</kbd> 或 <kbd class="px-1.5 py-0.5 bg-white rounded border border-[#DCD3C5] text-[11px] font-mono">方向鍵</kbd> 移動（手機支援螢幕任意處滑動搖盤）。</div>
+                </div>
+                <div class="flex items-start gap-2.5">
+                    <span class="text-[#00F2FF] text-base"><i class="fa-solid fa-shield-halved text-[#0098A6]"></i></span>
+                    <div><b>居合彈反 (Parry)：</b>按 <kbd class="px-1.5 py-0.5 bg-white rounded border border-[#DCD3C5] text-[11px] font-mono">Space 空白鍵</kbd>。在妖魔赤紅/妖紫子彈或重擊即將命中剎那彈刀，<b>彈飛敵方子彈化為青玉破魔飛刃</b>反殺魔怪！</div>
+                </div>
+                <div class="flex items-start gap-2.5">
+                    <span class="text-[#008899] text-base"><i class="fa-solid fa-wind"></i></span>
+                    <div><b>疾風翻滾 (Dash)：</b>按 <kbd class="px-1.5 py-0.5 bg-white rounded border border-[#DCD3C5] text-[11px] font-mono">Shift 鍵</kbd> 短暫無敵滑步突圍，化解魔潮包夾。</div>
+                </div>
+                <div class="flex items-start gap-2.5">
+                    <span class="text-[#00A86B] text-base"><i class="fa-solid fa-dragon"></i></span>
+                    <div><b>奧義・天魔滅殺：</b>斬妖聚氣滿條後按 <kbd class="px-1.5 py-0.5 bg-white rounded border border-[#DCD3C5] text-[11px] font-mono">E 鍵</kbd> 觸發水墨時間定格全螢幕切裂！</div>
+                </div>
+                <div class="flex items-start gap-2.5">
+                    <span class="text-[#D4AF37] text-base"><i class="fa-solid fa-torii-gate"></i></span>
+                    <div><b>場景破壞物：</b>攻擊打破石燈籠、鳥居古壺可獲得御飯糰(補血)、破魔神雷(清屏)與引魂鈴(磁吸)。</div>
+                </div>
+            </div>
+
+            <button id="btn-start-game" class="w-full py-3.5 bg-gradient-to-r from-[#00A86B] to-[#0099FF] hover:from-[#008F5B] hover:to-[#0080D6] text-[#FAF8F5] font-black text-lg rounded-xl shadow-lg transition-transform active:scale-95 tracking-widest font-serif flex items-center justify-center gap-2">
+                <i class="fa-solid fa-bolt"></i> 拔竹居合・出陣
+            </button>
+        </div>
     </div>
-  </div>
 
-  <!-- 左下技能圖示展示 -->
-  <div id="skills-tray"></div>
+    <!-- Game Over Screen -->
+    <div id="screen-gameover" class="absolute inset-0 z-50 flex items-center justify-center bg-[#1D1B1A]/85 backdrop-blur-md p-4 hidden">
+        <div class="max-w-md w-full bg-[#FAF8F5] border-2 border-[#C93B2B] p-6 sm:p-8 rounded-2xl shadow-2xl text-center relative washi-bg">
+            <div class="w-14 h-14 mx-auto mb-2 bg-[#FFEBEF] border-2 border-[#C93B2B] rounded-full flex items-center justify-center text-[#C93B2B] text-2xl shadow-inner">
+                <i class="fa-solid fa-skull"></i>
+            </div>
+            <h2 class="text-3xl font-black text-[#C93B2B] font-serif tracking-widest">竹林身殞・修羅評定</h2>
+            <p class="text-[#7D7365] text-xs font-serif mb-4">竹心未折，俠名長存；飲一口竹葉青，來世再戰！</p>
 
-  <!-- 右下戰鬥技能按鍵 -->
-  <div id="ult-meter-wrap">
-    <div class="action-btn" id="btn-ult">
-      <span class="key-hint">E</span>
-      <span>奧義</span>
-      <span style="font-size: 10px; color:#C93B2B;" id="ult-pct">0%</span>
+            <div class="mb-4">
+                <span class="text-xs font-mono font-bold text-[#8A7F71]">熊貓武道評定</span>
+                <div id="go-rank" class="hanko-stamp text-2xl font-serif mt-1 py-1 px-4">竹林劍聖</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 bg-[#F2ECE1] p-3.5 rounded-xl border border-[#DCD3C5] font-mono text-xs text-left mb-5">
+                <div><span class="text-[#7D7365] font-serif block">存活時間</span><b id="go-time" class="text-sm font-black text-[#2B2A29]">00:00</b></div>
+                <div><span class="text-[#7D7365] font-serif block">武道境界</span><b id="go-level" class="text-sm font-black text-[#008899]">壹段</b></div>
+                <div><span class="text-[#7D7365] font-serif block">討伐魔首</span><b id="go-kills" class="text-sm font-black text-[#C93B2B]">0</b></div>
+                <div><span class="text-[#7D7365] font-serif block">極限連斬</span><b id="go-combo" class="text-sm font-black text-[#0098A6]">0</b></div>
+                <div><span class="text-[#7D7365] font-serif block">精準彈反</span><b id="go-parries" class="text-sm font-black text-[#00A3FF]">0</b></div>
+                <div><span class="text-[#7D7365] font-serif block">彈反擊殺</span><b id="go-deflect-kills" class="text-sm font-black text-[#2B2A29]">0</b></div>
+            </div>
+
+            <button id="btn-restart-game" class="w-full py-3 bg-[#2B2A29] hover:bg-[#151413] text-[#FAF8F5] font-black text-base rounded-xl shadow-lg transition-transform active:scale-95 tracking-widest font-serif flex items-center justify-center gap-2">
+                <i class="fa-solid fa-rotate-right"></i> 揮竹重入江湖
+            </button>
+        </div>
     </div>
-    <div class="action-btn" id="btn-parry">
-      <span class="key-hint">F / 擊</span>
-      <span>彈反</span>
-      <span style="font-size: 10px; color:#008ba3;" id="parry-cd">就緒</span>
-    </div>
-    <div class="action-btn" id="btn-dash">
-      <span class="key-hint">空白</span>
-      <span>閃避</span>
-      <span style="font-size: 10px; color:#B35900;" id="dash-cd">就緒</span>
-    </div>
-  </div>
 
-  <!-- 虛擬搖桿 (移動端) -->
-  <div id="joystick-zone">
-    <div id="joystick-thumb"></div>
-  </div>
+    <!-- Web Audio & Game Mechanics -->
+    <script>
+        /* ==========================================================
+           AUDIO SYSTEM (Zero External Files - Procedural Web Audio)
+        ========================================================== */
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.isMuted = false;
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+            playKatanaSlash(isHeavy = false) {
+                if (this.isMuted || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                const filter = this.ctx.createBiquadFilter();
 
-  <!-- 升級繪馬 Modal -->
-  <div id="level-up-modal">
-    <div id="modal-title">武道晉升・悟道抉擇</div>
-    <div id="cards-container"></div>
-  </div>
+                filter.type = 'highpass';
+                filter.frequency.setValueAtTime(800, t);
 
-  <!-- 結算介面 -->
-  <div id="game-over-modal">
-    <div id="game-over-box">
-      <h2 id="end-status-title">力竭身殞</h2>
-      <div class="stat-row"><span>存活時間</span><span id="end-time">00:00</span></div>
-      <div class="stat-row"><span>斬滅百鬼</span><span id="end-kills">0 隻</span></div>
-      <div class="stat-row"><span>精進位階</span><span id="end-level">Lv 1</span></div>
-      <div class="stat-row"><span>彈反成功</span><span id="end-parries">0 次</span></div>
-      <button id="btn-restart" onclick="restartGame()">再次破劫</button>
-    </div>
-  </div>
-</div>
+                osc.type = isHeavy ? 'sawtooth' : 'triangle';
+                osc.frequency.setValueAtTime(isHeavy ? 420 : 680, t);
+                osc.frequency.exponentialRampToValueAtTime(70, t + 0.13);
 
-<script>
-/* =========================================================================
-   1. 音訊合成核心 (Web Audio API - 無需外部檔案，免加載失敗)
-   ========================================================================= */
-const SoundFX = {
-  ctx: null,
-  init() {
-    if (!this.ctx) {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      this.ctx = new AudioCtx();
-    }
-    if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
-    }
-  },
-  playBong(freq = 140, duration = 0.3) {
-    if (!this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + duration);
-    gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + duration);
-  },
-  playSlash() {
-    if (!this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(420, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(90, this.ctx.currentTime + 0.12);
-    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.12);
-  },
-  playParrySuccess() {
-    if (!this.ctx) return;
-    // 雙音高亢清脆金屬撞擊音
-    [880, 1760].forEach(f => {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(f, this.ctx.currentTime);
-      gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.28);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.28);
-    });
-  },
-  playPickup() {
-    if (!this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(520, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(960, this.ctx.currentTime + 0.1);
-    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.1);
-  },
-  playUlt() {
-    if (!this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(120, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.6);
-    gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.6);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.6);
-  }
-};
+                gain.gain.setValueAtTime(isHeavy ? 0.35 : 0.22, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
 
-/* =========================================================================
-   2. 遊戲主畫布與基礎引擎設定
-   ========================================================================= */
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
 
-let viewWidth = window.innerWidth;
-let viewHeight = window.innerHeight;
-function resizeCanvas() {
-  viewWidth = window.innerWidth;
-  viewHeight = window.innerHeight;
-  canvas.width = viewWidth;
-  canvas.height = viewHeight;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+                osc.start(t);
+                osc.stop(t + 0.13);
+            }
+            playParrySuccess() {
+                if (this.isMuted || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                // High resonant blade chime
+                [2000, 2600, 3400].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, t);
+                    osc.frequency.exponentialRampToValueAtTime(freq * 0.45, t + 0.38);
 
-// 手機觸控偵測顯示搖桿
-const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-if (isTouchDevice) {
-  document.getElementById('joystick-zone').style.display = 'block';
-}
+                    gain.gain.setValueAtTime(0.3 / (idx + 1), t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
 
-/* =========================================================================
-   3. 遊戲全局狀態 (State)
-   ========================================================================= */
-const Game = {
-  active: false,
-  paused: false,
-  gameTime: 0,
-  kills: 0,
-  parryCount: 0,
-  level: 1,
-  exp: 0,
-  nextExp: 20,
-  ultCharge: 0,
-  maxUlt: 100,
-  camera: { x: 0, y: 0 },
-  screenShake: 0,
-  hitStopTimer: 0,
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.38);
+                });
+            }
+            playTaiko(freq = 60, duration = 0.45) {
+                if (this.isMuted || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq * 2.2, t);
+                osc.frequency.exponentialRampToValueAtTime(freq, t + 0.08);
 
-  // 升級技能與心法庫
-  skills: {
-    // 招式 1: 居合一閃 (水藍流光扇面斬擊)
-    slash: { id: 'slash', name: '竹杖居合・一閃', level: 1, maxLvl: 7, cd: 1.1, timer: 0, dmg: 48, range: 140, evolved: false, icon: '⚔️' },
-    // 招式 2: 破邪竹符 (追蹤符咒，旋轉飛散)
-    talisman: { id: 'talisman', name: '太極追魂符', level: 0, maxLvl: 7, cd: 1.6, timer: 0, dmg: 35, count: 2, evolved: false, icon: '📜' },
-    // 招式 3: 櫻吹雪・散華 (身周迴旋風刃)
-    sakura: { id: 'sakura', name: '櫻吹雪・旋華', level: 0, maxLvl: 7, cd: 0.1, timer: 0, dmg: 20, radius: 110, count: 3, evolved: false, icon: '🌸' },
-    // 招式 4: 八咫神雷 (從天而降朱紅巨雷)
-    thunder: { id: 'thunder', name: '朱砂破魔神雷', level: 0, maxLvl: 7, cd: 2.2, timer: 0, dmg: 85, evolved: false, icon: '⚡' },
-    // 招式 5: 護體念珠 (懸浮佛珠力場)
-    beads: { id: 'beads', name: '菩提金剛念珠', level: 0, maxLvl: 7, cd: 0.05, timer: 0, dmg: 22, count: 4, radius: 80, evolved: false, icon: '📿' },
+                gain.gain.setValueAtTime(0.42, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
 
-    // 心法被動
-    iron_body: { id: 'iron_body', name: '熊皇霸體', level: 0, maxLvl: 5, val: 0, icon: '🛡️', desc: '提升最大生命值 50 點，強化減傷' },
-    gale_step: { id: 'gale_step', name: '凌波疾步', level: 0, maxLvl: 5, val: 0, icon: '👟', desc: '提升移動速度 12% 與閃避流暢度' },
-    clear_mind: { id: 'clear_mind', name: '明鏡止水', level: 0, maxLvl: 5, val: 0, icon: '🧘', desc: '全招式冷卻時間縮短 10%' },
-    spirit_drain: { id: 'spirit_drain', name: '聚氣納魂', level: 0, maxLvl: 5, val: 0, icon: '🌀', desc: '勾玉吸收半徑擴大 35%' }
-  }
-};
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + duration);
+            }
+            playThunder() {
+                if (this.isMuted || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(160, t);
+                osc.frequency.linearRampToValueAtTime(25, t + 0.55);
 
-/* =========================================================================
-   4. 主角：可愛又厲害的功夫熊貓【竹林行者・胖寶】
-   具有立體受光、眼部黑圈、白色毛皮層次、斗笠、竹杖、武道圍巾與陰影
-   ========================================================================= */
-const Player = {
-  x: 0,
-  y: 0,
-  radius: 26,
-  maxHp: 350,
-  hp: 350,
-  speed: 4.2,
-  vx: 0,
-  vy: 0,
-  facing: 1, // 1: 右, -1: 左
-  aimAngle: 0,
-  walkCycle: 0,
+                gain.gain.setValueAtTime(0.32, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
 
-  // 閃避 (Dash)
-  isDashing: false,
-  dashCooldown: 0,
-  maxDashCooldown: 1.8,
-  dashTimer: 0,
-  dashSpeedBonus: 12,
-
-  // 居合彈反 (Parry)
-  isParrying: false,
-  parryCooldown: 0,
-  maxParryCooldown: 2.0,
-  parryWindow: 0, // 0.28 秒無敵與彈反窗
-  parryFxTimer: 0,
-
-  init() {
-    this.x = 0;
-    this.y = 0;
-    this.maxHp = 350;
-    this.hp = 350;
-    this.speed = 4.2;
-    this.isDashing = false;
-    this.dashCooldown = 0;
-    this.isParrying = false;
-    this.parryCooldown = 0;
-  },
-
-  update(dt) {
-    if (this.dashCooldown > 0) this.dashCooldown -= dt;
-    if (this.parryCooldown > 0) this.parryCooldown -= dt;
-
-    if (this.dashTimer > 0) {
-      this.dashTimer -= dt;
-      if (this.dashTimer <= 0) this.isDashing = false;
-    }
-    if (this.parryWindow > 0) {
-      this.parryWindow -= dt;
-      if (this.parryWindow <= 0) this.isParrying = false;
-    }
-
-    // 計算移動速度 (心法加成)
-    const spd = (this.speed + Game.skills.gale_step.level * 0.5) * (this.isDashing ? 2.4 : 1.0);
-    this.x += this.vx * spd;
-    this.y += this.vy * spd;
-
-    if (Math.abs(this.vx) > 0.05 || Math.abs(this.vy) > 0.05) {
-      this.walkCycle += dt * 10;
-      if (this.vx > 0.05) this.facing = 1;
-      else if (this.vx < -0.05) this.facing = -1;
-
-      // 移動時產生淡淡水墨水波步痕
-      if (Math.random() < 0.2) {
-        addInkStepParticle(this.x, this.y + 20);
-      }
-    } else {
-      this.walkCycle = Math.sin(Game.gameTime * 3) * 0.2;
-    }
-  },
-
-  // 觸發閃避衝刺
-  dash() {
-    if (this.dashCooldown > 0 || this.isDashing) return;
-    this.isDashing = true;
-    this.dashTimer = 0.22;
-    this.dashCooldown = this.maxDashCooldown * (1 - Game.skills.clear_mind.level * 0.08);
-    SoundFX.playSlash();
-    // 釋放水藍色殘影粒子
-    for (let i = 0; i < 6; i++) {
-      createDashAfterimage(this.x, this.y, this.facing);
-    }
-  },
-
-  // 觸發彈反動作
-  parry() {
-    if (this.parryCooldown > 0 || this.isParrying) return;
-    this.isParrying = true;
-    this.parryWindow = 0.26; // 0.26 秒彈反時窗
-    this.parryCooldown = this.maxParryCooldown * (1 - Game.skills.clear_mind.level * 0.08);
-    SoundFX.playSlash();
-    createParryStanceRing(this.x, this.y);
-  },
-
-  draw(ctx) {
-    ctx.save();
-    ctx.translate(this.x, this.y);
-
-    // 1. 地面立體柔和投影 (Drop Shadow)
-    ctx.save();
-    ctx.scale(1, 0.45);
-    const shadowGrad = ctx.createRadialGradient(0, 48, 4, 0, 48, 28);
-    shadowGrad.addColorStop(0, 'rgba(40, 35, 30, 0.35)');
-    shadowGrad.addColorStop(1, 'rgba(40, 35, 30, 0)');
-    ctx.fillStyle = shadowGrad;
-    ctx.beginPath();
-    ctx.arc(0, 48, 28, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // 翻轉面向
-    ctx.scale(this.facing, 1);
-
-    const bobY = Math.sin(this.walkCycle) * 3;
-
-    // 彈反高亮水藍護體光環
-    if (this.isParrying) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(0, bobY, 36, 0, Math.PI * 2);
-      ctx.strokeStyle = '#00F0FF';
-      ctx.lineWidth = 4;
-      ctx.shadowColor = '#00F0FF';
-      ctx.shadowBlur = 16;
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    // 2. 圓滾滾身軀 (熊貓白身 + 立體受光陰影)
-    ctx.save();
-    ctx.translate(0, bobY);
-
-    // 雙腳 (黑毛)
-    ctx.fillStyle = '#262423';
-    ctx.beginPath();
-    ctx.ellipse(-10, 22, 9, 7, 0, 0, Math.PI * 2);
-    ctx.ellipse(10, 22, 9, 7, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 身體 (米白漸層，具備三維立體厚重感)
-    const bodyGrad = ctx.createRadialGradient(-4, 0, 6, 0, 4, 22);
-    bodyGrad.addColorStop(0, '#FFFFFF');
-    bodyGrad.addColorStop(0.7, '#F3EFE6');
-    bodyGrad.addColorStop(1, '#D8D0C0');
-    ctx.fillStyle = bodyGrad;
-    ctx.beginPath();
-    ctx.ellipse(0, 6, 21, 20, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#262423';
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-
-    // 黑色武道背帶 / 腹帶
-    ctx.fillStyle = '#262423';
-    ctx.beginPath();
-    ctx.arc(0, 6, 21, 0.25 * Math.PI, 0.75 * Math.PI);
-    ctx.stroke();
-
-    // 3. 雙耳 (黑色圓耳)
-    ctx.fillStyle = '#262423';
-    ctx.beginPath();
-    ctx.arc(-14, -18, 7.5, 0, Math.PI * 2);
-    ctx.arc(14, -18, 7.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 4. 頭部 (白色圓滾滾頭顱)
-    const headGrad = ctx.createRadialGradient(-3, -8, 4, 0, -6, 18);
-    headGrad.addColorStop(0, '#FFFFFF');
-    headGrad.addColorStop(0.8, '#FAF7EF');
-    headGrad.addColorStop(1, '#DCD5C4');
-    ctx.fillStyle = headGrad;
-    ctx.beginPath();
-    ctx.arc(0, -6, 18, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#262423';
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-
-    // 5. 熊貓招牌黑眼圈 (傾斜可愛立體眼圈)
-    ctx.fillStyle = '#262423';
-    ctx.beginPath();
-    ctx.ellipse(-7, -7, 6, 4.5, -0.3, 0, Math.PI * 2);
-    ctx.ellipse(7, -7, 6, 4.5, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 靈動瞳孔與眼神高光 (威風凜凜)
-    ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath();
-    ctx.arc(-6, -8, 2, 0, Math.PI * 2);
-    ctx.arc(8, -8, 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 黑色小巧鼻子與下顎
-    ctx.fillStyle = '#262423';
-    ctx.beginPath();
-    ctx.ellipse(0, -2, 3, 2, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 6. 帥氣隨風飄揚的【朱砂赤紅圍巾】(Vermilion Scarf)
-    ctx.fillStyle = '#FF1E44';
-    ctx.beginPath();
-    ctx.ellipse(0, 6, 14, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // 飄飄飄帶
-    ctx.beginPath();
-    ctx.moveTo(-6, 8);
-    ctx.bezierCurveTo(-18 - Math.sin(this.walkCycle) * 4, 12, -26, 18, -32 - Math.sin(this.walkCycle) * 8, 24);
-    ctx.lineTo(-24, 28);
-    ctx.bezierCurveTo(-16, 20, -10, 14, 0, 9);
-    ctx.fill();
-
-    // 7. 隨身配備：【翡翠青竹武杖】(Bamboo Staff)
-    ctx.save();
-    ctx.rotate(-0.2 + Math.sin(this.walkCycle * 0.8) * 0.15);
-    ctx.fillStyle = '#2E7D32';
-    ctx.strokeStyle = '#1B5E20';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.rect(12, -24, 5, 46);
-    ctx.fill();
-    ctx.stroke();
-    // 竹節條紋
-    ctx.fillStyle = '#81C784';
-    ctx.fillRect(12, -12, 5, 2.5);
-    ctx.fillRect(12, 2, 5, 2.5);
-    ctx.fillRect(12, 16, 5, 2.5);
-    ctx.restore();
-
-    // 8. 頭戴傳統日式【斗笠 / 陣笠】(Straw Kasa Hat)
-    ctx.fillStyle = '#C29863';
-    ctx.strokeStyle = '#262423';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(0, -28);
-    ctx.lineTo(24, -14);
-    ctx.lineTo(-24, -14);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    // 斗笠竹編紋理細節
-    ctx.strokeStyle = '#8E6435';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(0, -28);
-    ctx.lineTo(0, -14);
-    ctx.moveTo(0, -28);
-    ctx.lineTo(12, -14);
-    ctx.moveTo(0, -28);
-    ctx.lineTo(-12, -14);
-    ctx.stroke();
-
-    ctx.restore(); // bobY
-    ctx.restore(); // translate
-  }
-};
-
-/* =========================================================================
-   5. 百鬼夜行魔物族群與神話首領 (美術重構：絕無單純幾何拼湊，精緻手繪)
-   怪獸攻擊皆使用【鮮紅・暗紫・妖火橙黃】，絕非玩家的碧波水藍！
-   ========================================================================= */
-const Enemies = [];
-const EnemyBullets = [];
-const PlayerBullets = [];
-const DamageTexts = [];
-const Particles = [];
-const Collectibles = [];
-const BackgroundDecors = [];
-
-// 初始化地圖裝飾物 (立體鳥居、竹林、石燈籠、枯山水景石)
-for (let i = 0; i < 45; i++) {
-  BackgroundDecors.push({
-    x: (Math.random() - 0.5) * 4000,
-    y: (Math.random() - 0.5) * 4000,
-    type: Math.floor(Math.random() * 4),
-    size: 24 + Math.random() * 20
-  });
-}
-
-class Enemy {
-  constructor(x, y, type) {
-    this.x = x;
-    this.y = y;
-    this.type = type; // 0: 鴉天狗, 1: 骸骨狂忍, 2: 幽冥火狐, 3: 赤鬼巨力武神, 10: 八岐赤蛇之影, 20: 禍津日神・須佐狂靈
-    this.animTimer = Math.random() * 10;
-    this.facing = 1;
-    this.isBoss = (type >= 10);
-    this.attackCd = 1.5 + Math.random() * 1.5;
-    this.dashTimer = 0;
-    this.isDashing = false;
-
-    // 根據魔物型態配置數值 (難度提升：血厚、靈敏、高攻)
-    switch(type) {
-      case 0: // 鴉天狗 (高速飛行突襲，雙翅翱翔)
-        this.radius = 19;
-        this.maxHp = 60 + Game.gameTime * 0.9;
-        this.speed = 3.6;
-        this.dmg = 18;
-        this.expVal = 3;
-        break;
-      case 1: // 骸骨狂忍 (持武士刀，會蓄力突刺衝刺)
-        this.radius = 21;
-        this.maxHp = 110 + Game.gameTime * 1.4;
-        this.speed = 2.4;
-        this.dmg = 24;
-        this.expVal = 5;
-        break;
-      case 2: // 幽冥火狐 (飄渺狐火，會遠程噴吐鮮紅妖火)
-        this.radius = 20;
-        this.maxHp = 90 + Game.gameTime * 1.2;
-        this.speed = 2.0;
-        this.dmg = 20;
-        this.expVal = 6;
-        break;
-      case 3: // 赤鬼巨力武神 (揮舞金棒、地面猛擊震撼)
-        this.radius = 32;
-        this.maxHp = 340 + Game.gameTime * 3.5;
-        this.speed = 1.6;
-        this.dmg = 42;
-        this.expVal = 14;
-        break;
-      case 10: // 【神話首領一：八岐赤蛇之影】(巨大赤蟒雙角、鮮紅魔炎法陣)
-        this.radius = 54;
-        this.maxHp = 4200 + Game.gameTime * 20;
-        this.speed = 1.8;
-        this.dmg = 45;
-        this.expVal = 80;
-        break;
-      case 20: // 【神話首領二：禍津日神・須佐之凶靈】(浮空勾玉雷環、巨型十拳天劍)
-        this.radius = 65;
-        this.maxHp = 8800 + Game.gameTime * 35;
-        this.speed = 2.1;
-        this.dmg = 60;
-        this.expVal = 180;
-        break;
-    }
-    this.hp = this.maxHp;
-  }
-
-  update(dt) {
-    this.animTimer += dt * 5;
-    const dx = Player.x - this.x;
-    const dy = Player.y - this.y;
-    const dist = Math.hypot(dx, dy) || 1;
-    this.facing = dx >= 0 ? 1 : -1;
-
-    // 衝刺蓄力行為
-    if (this.dashTimer > 0) {
-      this.dashTimer -= dt;
-      if (this.dashTimer <= 0) {
-        this.isDashing = false;
-      }
-    }
-
-    // 妖物專屬 AI 與攻擊機制
-    this.attackCd -= dt;
-    if (this.attackCd <= 0) {
-      if (this.type === 1 && dist < 220) {
-        // 骸骨狂忍：短暫蓄力衝刺劈砍！
-        this.isDashing = true;
-        this.dashTimer = 0.4;
-        this.attackCd = 3.5;
-        SoundFX.playSlash();
-      } else if (this.type === 2 && dist < 380) {
-        // 幽冥火狐：發射鮮紅/赤橙妖氣火球
-        this.fireEnemyBullet(dx / dist, dy / dist, '#FF3B14', 4.5, 20);
-        this.attackCd = 2.6;
-      } else if (this.type === 3 && dist < 260) {
-        // 赤鬼：重踏大地引爆鮮紅震盪波
-        createGroundCrater(this.x, this.y, 130);
-        this.attackCd = 3.8;
-        if (dist < 130 && !Player.isDashing && !Player.isParrying) {
-          Player.hp -= 35;
-          Game.screenShake = 12;
-          addDamageText(Player.x, Player.y, 35, '#FF1E44');
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + 0.55);
+            }
+            playLevelUp() {
+                if (this.isMuted || !this.ctx) return;
+                const notes = [523, 659, 784, 1046];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    const t = this.ctx.currentTime + idx * 0.06;
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, t);
+                    gain.gain.setValueAtTime(0.2, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.24);
+                });
+            }
+            playMagatama() {
+                if (this.isMuted || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(900 + Math.random() * 450, t);
+                gain.gain.setValueAtTime(0.08, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + 0.1);
+            }
+            playItemPickup() {
+                if (this.isMuted || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, t);
+                osc.frequency.exponentialRampToValueAtTime(1200, t + 0.2);
+                gain.gain.setValueAtTime(0.25, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + 0.2);
+            }
         }
-      } else if (this.type === 10) {
-        // 八岐赤蛇之影：3連發散彈赤魔火 + 突進
-        for (let i = -1; i <= 1; i++) {
-          const angle = Math.atan2(dy, dx) + i * 0.28;
-          this.fireEnemyBullet(Math.cos(angle), Math.sin(angle), '#E6002E', 5.0, 26);
+        const audio = new SoundFX();
+
+        /* ==========================================================
+           COLOR PALETTES (STRICT SEPARATION: CYAN FOR PLAYER,
+           CRIMSON / MAGENTA / DARK PURPLE FOR ENEMIES)
+        ========================================================== */
+        const THEME = {
+            paperBase: '#F6F3EC',
+            paperDark: '#ECE7DE',
+            sumiBlack: '#2B2A29',
+            sumiSoft: '#45413D',
+            shadow: 'rgba(25, 23, 22, 0.38)',
+            // Player Palette: Bamboo Jade & Electric Water Blue
+            playerCyan: '#00F2FF',
+            playerBlue: '#0099FF',
+            bambooGreen: '#00A86B',
+            bambooLight: '#52D898',
+            gold: '#D4AF37',
+            // Enemy Palette: STRICTLY NO BLUE!
+            enemyCrimson: '#FF2A4D',
+            enemyDarkRed: '#A60F25',
+            enemyPurple: '#D91484',
+            enemyViolet: '#7B1FA2',
+            enemyMiasma: 'rgba(217, 20, 132, 0.35)'
+        };
+
+        /* ==========================================================
+           GAME ENGINE STATE & CANVAS
+        ========================================================== */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        let gameState = 'START';
+        let gameTime = 0;
+        let lastTime = 0;
+        let killCount = 0;
+        let parryCount = 0;
+        let deflectKills = 0;
+        let comboCount = 0;
+        let maxCombo = 0;
+        let comboTimer = 0;
+        let screenShake = 0;
+        let hitStopTimer = 0;
+
+        const pointer = { x: width / 2, y: height / 2, isDown: false };
+        window.addEventListener('mousemove', e => {
+            pointer.x = e.clientX;
+            pointer.y = e.clientY;
+        });
+
+        const keys = {
+            KeyW: false, KeyS: false, KeyA: false, KeyD: false,
+            ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false,
+            Space: false, ShiftLeft: false, ShiftRight: false, KeyE: false
+        };
+
+        window.addEventListener('keydown', e => {
+            if (keys.hasOwnProperty(e.code)) keys[e.code] = true;
+            if (e.code === 'Space') {
+                e.preventDefault();
+                triggerPlayerParry();
+            }
+            if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+                e.preventDefault();
+                triggerPlayerDash();
+            }
+            if (e.code === 'KeyE') {
+                triggerPlayerUltimate();
+            }
+        });
+        window.addEventListener('keyup', e => {
+            if (keys.hasOwnProperty(e.code)) keys[e.code] = false;
+        });
+
+        /* ==========================================================
+           BAMBOO RONIN PANDA HERO (PROTAGONIST)
+        ========================================================== */
+        const player = {
+            x: 0,
+            y: 0,
+            vx: 0,
+            vy: 0,
+            radius: 20,
+            speed: 220,
+            facing: 1,
+            angle: 0,
+            breathPhase: 0,
+            walkCycle: 0,
+
+            // Stats (High HP for intense hardcore experience)
+            hp: 380,
+            maxHp: 380,
+            regen: 1.2,
+            level: 1,
+            exp: 0,
+            nextExp: 25,
+            pickupRadius: 135,
+
+            // Dash / Evade
+            dashCooldown: 0,
+            dashDuration: 0,
+            isDashing: false,
+
+            // Parry / Deflect
+            isParrying: false,
+            parryWindow: 0,
+            parryCooldown: 0,
+            parryMaxCooldown: 0.42,
+
+            // Ultimate (天魔滅殺)
+            ultCharge: 0,
+            maxUltCharge: 100,
+
+            // Skills & Weapons
+            skills: {
+                iaiSlash: { level: 1, timer: 0, cooldown: 0.72, name: '青竹居合・一文字', evolved: false },
+                ofuda: { level: 0, timer: 0, cooldown: 1.05, name: '破邪・竹林符咒', evolved: false },
+                sakuraStorm: { level: 0, timer: 0, radius: 82, name: '櫻吹雪・散華刃', evolved: false },
+                yataThunder: { level: 0, timer: 0, cooldown: 2.1, name: '九天神雷・天罰', evolved: false },
+                juzuBeads: { level: 0, angle: 0, name: '守護・碧玉菩提', evolved: false },
+                shadowClone: { level: 0, timer: 0, cooldown: 1.75, name: '竹影・墨分身', evolved: false },
+                bloodVortex: { level: 0, timer: 0, cooldown: 3.4, name: '修羅・水墨旋渦', evolved: false },
+                waterDragon: { level: 0, timer: 0, cooldown: 2.7, name: '青龍・貫日破空', evolved: false },
+
+                // Passives
+                passiveIai: { level: 0, name: '居合拔刀術' },
+                passivePower: { level: 0, name: '功夫熊貓剛力' },
+                passiveHaste: { level: 0, name: '疾風竹影步' },
+                passiveSoul: { level: 0, name: '勾玉靈魂吸引' },
+                passiveParry: { level: 0, name: '心眼見切反彈' }
+            }
+        };
+
+        // Entities Containers
+        let enemies = [];
+        let enemyProjectiles = [];  // Strictly Crimson / Magenta / Purple
+        let projectiles = [];       // Slashes, Talismans, Reflected Jade Blades
+        let magatamas = [];         // EXP Gems
+        let mapProps = [];          // Destructibles (Shrines, Lanterns, Urns)
+        let droppedItems = [];      // Onigiri (heal), Bomb (screen wipe), Bell (magnet)
+        let particles = [];
+        let shockwaves = [];
+        let floatingTexts = [];
+
+        /* ==========================================================
+           DESTRUCTIBLE PROPS GENERATOR (SHRINES, LANTERNS, URNS)
+        ========================================================== */
+        function initMapProps() {
+            mapProps = [];
+            for (let i = 0; i < 75; i++) {
+                const rx = (Math.random() - 0.5) * 5000;
+                const ry = (Math.random() - 0.5) * 5000;
+                const types = ['shrine', 'lantern', 'urn', 'bamboo_cluster'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                mapProps.push({
+                    x: rx,
+                    y: ry,
+                    type: type,
+                    hp: 35,
+                    maxHp: 35,
+                    radius: type === 'shrine' ? 26 : (type === 'lantern' ? 18 : 15),
+                    rotation: (Math.random() - 0.5) * 0.15
+                });
+            }
         }
-        this.attackCd = 2.0;
-      } else if (this.type === 20) {
-        // 禍津日神：全方位八向暗紫天火雷核
-        for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-          this.fireEnemyBullet(Math.cos(a), Math.sin(a), '#9C27B0', 4.0, 32);
+
+        /* ==========================================================
+           PARRY / DEFLECT SYSTEM (HARDCORE DEFENSE)
+        ========================================================== */
+        function triggerPlayerParry() {
+            if (player.parryCooldown > 0 || gameState !== 'PLAYING') return;
+
+            audio.init();
+            player.isParrying = true;
+            const parryBonus = player.skills.passiveParry.level * 0.06;
+            player.parryWindow = 0.22 + parryBonus;
+            player.parryCooldown = player.parryMaxCooldown;
+
+            // Water-Blue expand wave on parry cast
+            shockwaves.push({
+                x: player.x,
+                y: player.y,
+                r: 10,
+                maxR: 95,
+                color: THEME.playerCyan,
+                width: 4,
+                alpha: 1
+            });
+
+            // Check enemy projectiles in radius (Deflect them!)
+            let deflectedCount = 0;
+            const deflectRadius = 95 + player.skills.passiveParry.level * 18;
+
+            for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
+                const ep = enemyProjectiles[i];
+                const d = Math.hypot(ep.x - player.x, ep.y - player.y);
+
+                if (d < deflectRadius) {
+                    deflectedCount++;
+                    parryCount++;
+                    enemyProjectiles.splice(i, 1);
+
+                    // Compute reflected trajectory (Toward nearest demon or forward)
+                    let counterAngle = Math.atan2(ep.vy, ep.vx) + Math.PI;
+                    let nearestTarget = null;
+                    let minDist = 450;
+                    enemies.forEach(en => {
+                        const ed = Math.hypot(en.x - player.x, en.y - player.y);
+                        if (ed < minDist) { minDist = ed; nearestTarget = en; }
+                    });
+                    if (nearestTarget) {
+                        counterAngle = Math.atan2(nearestTarget.y - player.y, nearestTarget.x - player.x);
+                    }
+
+                    // Turn deflected enemy orb into Glowing Jade Dagger
+                    const reflectDamage = (85 + player.level * 16) * 
+                        (1 + player.skills.passivePower.level * 0.25) * 
+                        (1 + player.skills.passiveParry.level * 0.55);
+
+                    projectiles.push({
+                        type: 'deflected_blade',
+                        x: ep.x,
+                        y: ep.y,
+                        vx: Math.cos(counterAngle) * 650,
+                        vy: Math.sin(counterAngle) * 650,
+                        angle: counterAngle,
+                        damage: reflectDamage,
+                        pierce: 6,
+                        radius: 20,
+                        lifetime: 1.8,
+                        color: THEME.playerCyan
+                    });
+
+                    createInkSplatter(ep.x, ep.y, THEME.playerCyan, 12);
+                }
+            }
+
+            // Deflect melee charges from nearby charging enemies
+            enemies.forEach(e => {
+                const ed = Math.hypot(e.x - player.x, e.y - player.y);
+                if (ed < deflectRadius && (e.isCharging || ed < 65)) {
+                    deflectedCount++;
+                    parryCount++;
+                    e.isCharging = false;
+                    e.vx = -Math.cos(player.angle) * 350;
+                    e.vy = -Math.sin(player.angle) * 350;
+                    applyDamageToEnemy(e, 140 * (1 + player.skills.passiveParry.level * 0.4), true);
+                }
+            });
+
+            if (deflectedCount > 0) {
+                audio.playParrySuccess();
+                hitStopTimer = 0.09;
+                screenShake = 14;
+                addFloatingText(player.x, player.y - 42, `【見切・彈反 ×${deflectedCount}】`, THEME.playerCyan, 28);
+                comboCount += deflectedCount * 2;
+                comboTimer = 3.2;
+                player.ultCharge = Math.min(player.maxUltCharge, player.ultCharge + 12 * deflectedCount);
+            } else {
+                audio.playKatanaSlash(false);
+            }
         }
-        this.attackCd = 2.4;
-      }
-    }
 
-    // 移動推進
-    let curSpeed = this.speed;
-    if (this.isDashing) curSpeed *= 2.8;
+        function triggerPlayerDash() {
+            if (player.dashCooldown > 0 || gameState !== 'PLAYING') return;
+            audio.init();
+            player.isDashing = true;
+            player.dashDuration = 0.24;
+            player.dashCooldown = 0.9;
 
-    this.x += (dx / dist) * curSpeed;
-    this.y += (dy / dist) * curSpeed;
-
-    // 碰撞玩家傷害檢定
-    if (dist < this.radius + Player.radius) {
-      if (Player.isParrying) {
-        // 完美彈反魔物肉身衝撞！
-        triggerParrySuccess(this);
-      } else if (!Player.isDashing) {
-        Player.hp -= this.dmg * dt * 2.2;
-        if (Math.random() < 0.2) {
-          addDamageText(Player.x, Player.y, Math.floor(this.dmg), '#FF1E44');
+            shockwaves.push({
+                x: player.x,
+                y: player.y,
+                r: 15,
+                maxR: 80,
+                color: THEME.bambooGreen,
+                width: 3.5,
+                alpha: 1
+            });
+            audio.playKatanaSlash(false);
         }
-      }
-    }
-  }
 
-  fireEnemyBullet(dirX, dirY, color, speed, dmg) {
-    EnemyBullets.push({
-      x: this.x,
-      y: this.y,
-      vx: dirX * speed,
-      vy: dirY * speed,
-      color: color, // 鮮紅、狂紫、赤橙，不使用玩家的藍色
-      radius: 9,
-      dmg: dmg,
-      life: 5.0
-    });
-  }
+        function triggerPlayerUltimate() {
+            if (player.ultCharge < player.maxUltCharge || gameState !== 'PLAYING') return;
+            player.ultCharge = 0;
+            audio.playThunder();
+            screenShake = 28;
+            hitStopTimer = 0.22;
 
-  draw(ctx) {
-    ctx.save();
-    ctx.translate(this.x, this.y);
+            addFloatingText(player.x, player.y - 65, '【奧義・天魔滅殺】', THEME.bambooGreen, 40);
 
-    // 陰影 (Drop Shadow)
-    ctx.save();
-    ctx.scale(1, 0.4);
-    const shadowR = this.radius * 1.1;
-    const g = ctx.createRadialGradient(0, 30, 2, 0, 30, shadowR);
-    g.addColorStop(0, 'rgba(30, 25, 20, 0.45)');
-    g.addColorStop(1, 'rgba(30, 25, 20, 0)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(0, 30, shadowR, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+            shockwaves.push({
+                x: player.x,
+                y: player.y,
+                r: 25,
+                maxR: Math.max(width, height) * 1.2,
+                color: THEME.playerCyan,
+                width: 12,
+                alpha: 1.8
+            });
 
-    ctx.scale(this.facing, 1);
+            // Annihilate monsters and convert all enemy projectiles to gems
+            enemies.forEach(e => {
+                const dmg = (550 + player.level * 60) * (1 + player.skills.passivePower.level * 0.25);
+                applyDamageToEnemy(e, dmg, true);
+            });
+            enemyProjectiles.forEach(ep => {
+                magatamas.push({
+                    x: ep.x,
+                    y: ep.y,
+                    val: 4,
+                    vx: 0,
+                    vy: 0
+                });
+            });
+            enemyProjectiles = [];
+        }
 
-    // 根據各魔物精緻手繪立體渲染
-    if (this.type === 0) {
-      // 0. 鴉天狗 (Karasu Tengu) - 雙翼拍動、長紅鼻威嚴天狗面具、黑色羽織
-      const wingFlap = Math.sin(this.animTimer * 2) * 16;
-      // 黑色羽翼 (左/右)
-      ctx.fillStyle = '#1D1C1C';
-      ctx.beginPath();
-      ctx.moveTo(-6, -6);
-      ctx.quadraticCurveTo(-26, -24 + wingFlap, -36, -8 + wingFlap);
-      ctx.quadraticCurveTo(-24, 8, -4, 4);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(6, -6);
-      ctx.quadraticCurveTo(26, -24 - wingFlap, 36, -8 - wingFlap);
-      ctx.quadraticCurveTo(24, 8, 4, 4);
-      ctx.fill();
+        /* ==========================================================
+           MYTHICAL MONSTERS & MYTHICAL BOSSES
+        ========================================================== */
+        function spawnEnemyWave(dt) {
+            const spawnRate = Math.min(32, 4 + Math.floor(gameTime / 15));
+            if (enemies.length < spawnRate * 5 && Math.random() < 0.1) {
+                const angle = Math.random() * Math.PI * 2;
+                const spawnDist = Math.max(width, height) * 0.68;
+                const sx = player.x + Math.cos(angle) * spawnDist;
+                const sy = player.y + Math.sin(angle) * spawnDist;
 
-      // 天狗赤紅面具與長鼻
-      ctx.fillStyle = '#C93B2B';
-      ctx.beginPath();
-      ctx.arc(0, -6, 12, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#2B2A29';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+                const roll = Math.random();
+                let type = 'tengu';
 
-      // 長鼻突出
-      ctx.beginPath();
-      ctx.moveTo(4, -8);
-      ctx.lineTo(20, -6);
-      ctx.lineTo(4, -3);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+                if (gameTime > 120 && roll < 0.22) {
+                    type = 'oni'; // Red horned brute with spiked club
+                } else if (gameTime > 60 && roll < 0.48) {
+                    type = 'kitsune'; // Mythical spirit fox
+                } else if (gameTime > 25 && roll < 0.78) {
+                    type = 'ashigaru'; // Skeletal samurai with war banner
+                } else {
+                    type = 'tengu'; // Crow tengu flyer
+                }
 
-      // 凌厲金瞳
-      ctx.fillStyle = '#FFD700';
-      ctx.beginPath();
-      ctx.arc(3, -9, 2.5, 0, Math.PI * 2);
-      ctx.fill();
+                createEnemy(sx, sy, type);
+            }
 
-    } else if (this.type === 1) {
-      // 1. 骸骨狂忍 (Armored Skeleton) - 黑色武士陣笠、十文字槍、肋骨甲冑
-      // 陣笠
-      ctx.fillStyle = '#2A2928';
-      ctx.beginPath();
-      ctx.moveTo(0, -26);
-      ctx.lineTo(20, -12);
-      ctx.lineTo(-20, -12);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = '#111';
-      ctx.stroke();
+            // Boss 1 at 1:00 (羅剎般若・牛頭鬼神)
+            if (gameTime >= 60 && !player.boss1Spawned) {
+                player.boss1Spawned = true;
+                createMythicalBoss(player.x, player.y - 420, 'rasetsu_hannya', '【羅剎般若・牛頭鬼神】', 5500);
+            }
 
-      // 骨白骷髏頭顱
-      ctx.fillStyle = '#EBE5D8';
-      ctx.beginPath();
-      ctx.arc(0, -4, 11, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#222';
-      ctx.beginPath();
-      // 深邃眼窩與猩紅妖光
-      ctx.arc(4, -5, 3.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#FF1E44';
-      ctx.beginPath();
-      ctx.arc(4, -5, 1.8, 0, Math.PI * 2);
-      ctx.fill();
+            // Boss 2 at 2:30 (大嶽丸・雷霆夜叉)
+            if (gameTime >= 150 && !player.boss2Spawned) {
+                player.boss2Spawned = true;
+                createMythicalBoss(player.x, player.y - 460, 'otakemaru_yasha', '【大嶽丸・雷霆夜叉】', 11500);
+            }
+        }
 
-      // 骨甲與長刃
-      ctx.strokeStyle = '#B5ADA0';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(0, 7);
-      ctx.lineTo(0, 22);
-      ctx.moveTo(-8, 12);
-      ctx.lineTo(8, 12);
-      ctx.moveTo(-7, 18);
-      ctx.lineTo(7, 18);
-      ctx.stroke();
+        function createEnemy(x, y, type) {
+            const timeScale = 1 + (gameTime / 55) * 1.4;
+            let hp = 55 * timeScale;
+            let speed = 120;
+            let radius = 18;
+            let damage = 18;
+            let exp = 12;
 
-      // 武士長太刀 (泛著寒光)
-      ctx.save();
-      ctx.strokeStyle = '#D4CEBF';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(6, 6);
-      ctx.lineTo(26, this.isDashing ? 0 : 20);
-      ctx.stroke();
-      ctx.restore();
+            if (type === 'tengu') {
+                hp = 42 * timeScale;
+                speed = 180;
+                radius = 16;
+                damage = 15;
+                exp = 10;
+            } else if (type === 'ashigaru') {
+                hp = 85 * timeScale;
+                speed = 105;
+                radius = 20;
+                damage = 22;
+                exp = 18;
+            } else if (type === 'kitsune') {
+                hp = 110 * timeScale;
+                speed = 95;
+                radius = 22;
+                damage = 25;
+                exp = 26;
+            } else if (type === 'oni') {
+                hp = 360 * timeScale;
+                speed = 72;
+                radius = 34;
+                damage = 48;
+                exp = 85;
+            }
 
-    } else if (this.type === 2) {
-      // 2. 幽冥火狐 (Kitsune Spirit) - 飄動之狐耳、狐狸面具與 3 團赤橙妖火尾
-      const tailWiggle = Math.sin(this.animTimer) * 8;
-      // 3 團赤橙漸層流動狐火尾翼 (絕對不用藍色)
-      for (let t = -1; t <= 1; t++) {
-        const fireGrad = ctx.createRadialGradient(-16, 6 + t * 9, 2, -26, 6 + t * 9 + tailWiggle, 16);
-        fireGrad.addColorStop(0, '#FFF275');
-        fireGrad.addColorStop(0.5, '#FF5722');
-        fireGrad.addColorStop(1, 'rgba(230, 0, 46, 0)');
-        ctx.fillStyle = fireGrad;
-        ctx.beginPath();
-        ctx.arc(-20, 6 + t * 9 + tailWiggle, 14, 0, Math.PI * 2);
-        ctx.fill();
-      }
+            enemies.push({
+                x, y,
+                type,
+                hp,
+                maxHp: hp,
+                speed,
+                radius,
+                damage,
+                exp,
+                isBoss: false,
+                flashTimer: 0,
+                attackTimer: Math.random() * 2,
+                animPhase: Math.random() * 10,
+                isCharging: false,
+                vx: 0,
+                vy: 0
+            });
+        }
 
-      // 白底紅紋狐仙面具
-      ctx.fillStyle = '#FAF7EF';
-      ctx.beginPath();
-      ctx.ellipse(0, -4, 13, 11, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#2B2A29';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+        function createMythicalBoss(x, y, type, name, hp) {
+            showToastBanner(name, '神話魔煞現世！揮刀彈反妖彈，破滅魔威！');
+            audio.playThunder();
+            screenShake = 22;
 
-      // 狐耳
-      ctx.fillStyle = '#FAF7EF';
-      ctx.beginPath();
-      ctx.moveTo(-10, -12); ctx.lineTo(-16, -24); ctx.lineTo(-4, -14);
-      ctx.moveTo(10, -12); ctx.lineTo(16, -24); ctx.lineTo(4, -14);
-      ctx.fill();
-      ctx.stroke();
+            enemies.push({
+                x, y,
+                type,
+                name,
+                hp,
+                maxHp: hp,
+                speed: 70,
+                radius: 50,
+                damage: 58,
+                exp: 500,
+                isBoss: true,
+                flashTimer: 0,
+                attackTimer: 1.2,
+                animPhase: 0,
+                floatingBladesAngle: 0,
+                isCharging: false,
+                chargeTimer: 0,
+                vx: 0,
+                vy: 0
+            });
+        }
 
-      // 面具赤紅花紋
-      ctx.strokeStyle = '#FF1E44';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(2, -6); ctx.lineTo(8, -8);
-      ctx.moveTo(2, -2); ctx.lineTo(9, -2);
-      ctx.stroke();
+        /* ==========================================================
+           WEAPON ARSENAL & ATTACK UPDATES (PHYSICAL SLICES & BOLTS)
+        ========================================================== */
+        function updatePlayerAttacks(dt) {
+            const sk = player.skills;
+            const cdr = 1 / (1 + sk.passiveIai.level * 0.2);
+            const dmgMult = 1 + sk.passivePower.level * 0.25;
 
-    } else if (this.type === 3) {
-      // 3. 赤鬼巨力武神 (Aka-Oni Brute) - 暗紅筋骨、青黑雙角、金屬尖刺巨棒
-      // 健碩赤色身軀
-      const oniGrad = ctx.createRadialGradient(-6, -4, 6, 0, 0, 30);
-      oniGrad.addColorStop(0, '#E63946');
-      oniGrad.addColorStop(0.8, '#A31C28');
-      oniGrad.addColorStop(1, '#610B13');
-      ctx.fillStyle = oniGrad;
-      ctx.beginPath();
-      ctx.arc(0, 0, 26, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#2B2A29';
-      ctx.lineWidth = 3;
-      ctx.stroke();
+            // 1. 青竹居合・一文字 (Crescent Jade / Cyan Katana Arc)
+            if (sk.iaiSlash.level > 0) {
+                sk.iaiSlash.timer -= dt;
+                if (sk.iaiSlash.timer <= 0) {
+                    sk.iaiSlash.timer = sk.iaiSlash.cooldown * cdr;
 
-      // 頭頂黑金立體雙角
-      ctx.fillStyle = '#222';
-      ctx.beginPath();
-      ctx.moveTo(-12, -22); ctx.quadraticCurveTo(-18, -38, -12, -42); ctx.lineTo(-6, -24);
-      ctx.moveTo(12, -22); ctx.quadraticCurveTo(18, -38, 12, -42); ctx.lineTo(6, -24);
-      ctx.fill();
-      ctx.stroke();
+                    let targetAngle = player.angle;
+                    if (enemies.length > 0) {
+                        let nearest = enemies[0];
+                        let nd = Math.hypot(nearest.x - player.x, nearest.y - player.y);
+                        for (let e of enemies) {
+                            const d = Math.hypot(e.x - player.x, e.y - player.y);
+                            if (d < nd) { nd = d; nearest = e; }
+                        }
+                        if (nd < 420) targetAngle = Math.atan2(nearest.y - player.y, nearest.x - player.x);
+                    }
 
-      // 猙獰鬼面雙目與利齒
-      ctx.fillStyle = '#FFF';
-      ctx.beginPath();
-      ctx.arc(-8, -8, 4, 0, Math.PI * 2);
-      ctx.arc(8, -8, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#FFC107';
-      ctx.beginPath();
-      ctx.arc(-7, -8, 2, 0, Math.PI * 2);
-      ctx.arc(9, -8, 2, 0, Math.PI * 2);
-      ctx.fill();
+                    const slashCount = sk.iaiSlash.evolved ? 3 : (1 + Math.floor(sk.iaiSlash.level / 3));
+                    for (let s = 0; s < slashCount; s++) {
+                        const spread = (s - (slashCount - 1) / 2) * 0.24;
+                        projectiles.push({
+                            type: 'iai_arc',
+                            x: player.x,
+                            y: player.y,
+                            vx: Math.cos(targetAngle + spread) * 600,
+                            vy: Math.sin(targetAngle + spread) * 600,
+                            angle: targetAngle + spread,
+                            damage: (48 + sk.iaiSlash.level * 16) * dmgMult * (sk.iaiSlash.evolved ? 2.0 : 1),
+                            pierce: sk.iaiSlash.evolved ? 14 : 5,
+                            radius: sk.iaiSlash.evolved ? 52 : 36,
+                            lifetime: 0.95,
+                            isEvolved: sk.iaiSlash.evolved
+                        });
+                    }
+                    audio.playKatanaSlash(true);
+                }
+            }
 
-      // 巨大帶刺金棒 (Kanabo)
-      ctx.save();
-      ctx.fillStyle = '#1F1E1D';
-      ctx.fillRect(18, -34, 12, 54);
-      // 突刺
-      ctx.fillStyle = '#D4CEBF';
-      ctx.fillRect(15, -28, 4, 4);
-      ctx.fillRect(30, -20, 4, 4);
-      ctx.fillRect(15, -12, 4, 4);
-      ctx.restore();
+            // 2. 破邪・竹林符咒 (Homing Paper Talismans)
+            if (sk.ofuda.level > 0) {
+                sk.ofuda.timer -= dt;
+                if (sk.ofuda.timer <= 0) {
+                    sk.ofuda.timer = sk.ofuda.cooldown * cdr;
+                    const count = sk.ofuda.evolved ? 8 : (2 + sk.ofuda.level);
+                    for (let i = 0; i < count; i++) {
+                        const a = (Math.PI * 2 / count) * i;
+                        projectiles.push({
+                            type: 'ofuda_charm',
+                            x: player.x,
+                            y: player.y,
+                            vx: Math.cos(a) * 330,
+                            vy: Math.sin(a) * 330,
+                            damage: (32 + sk.ofuda.level * 10) * dmgMult,
+                            pierce: 1,
+                            radius: 14,
+                            lifetime: 3.2
+                        });
+                    }
+                }
+            }
 
-    } else if (this.type === 10) {
-      // 10. 【神話首領一：八岐赤蛇之影】
-      // 盤旋的巨蛇之軀與立體神話圖騰
-      const sGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, 52);
-      sGrad.addColorStop(0, '#C92A2A');
-      sGrad.addColorStop(0.7, '#861B1B');
-      sGrad.addColorStop(1, '#3B0909');
-      ctx.fillStyle = sGrad;
-      ctx.beginPath();
-      ctx.arc(0, 0, 48, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#2B2A29';
-      ctx.lineWidth = 4;
-      ctx.stroke();
+            // 3. 櫻吹雪・散華刃 (Whirling Razor Blossom Blades)
+            if (sk.sakuraStorm.level > 0) {
+                sk.sakuraStorm.timer += dt * 3.6;
+                if (Math.sin(sk.sakuraStorm.timer * 4.2) > 0.82) {
+                    const radius = sk.sakuraStorm.radius + (sk.sakuraStorm.evolved ? 50 : sk.sakuraStorm.level * 7);
+                    enemies.forEach(e => {
+                        const d = Math.hypot(e.x - player.x, e.y - player.y);
+                        if (d < radius + e.radius) {
+                            applyDamageToEnemy(e, (18 + sk.sakuraStorm.level * 7) * dmgMult * dt * 4, false);
+                        }
+                    });
+                    // Also damage map props
+                    mapProps.forEach(mp => {
+                        const d = Math.hypot(mp.x - player.x, mp.y - player.y);
+                        if (d < radius + mp.radius) damageMapProp(mp, 10);
+                    });
+                }
+            }
 
-      // 蛇鱗花紋
-      ctx.strokeStyle = '#FF6B6B';
-      ctx.lineWidth = 2.5;
-      for (let r = 16; r <= 38; r += 11) {
-        ctx.beginPath();
-        ctx.arc(0, 0, r, 0, Math.PI * 2);
-        ctx.stroke();
-      }
+            // 4. 九天神雷・天罰 (Descending Divine Cyan Lightning)
+            if (sk.yataThunder.level > 0) {
+                sk.yataThunder.timer -= dt;
+                if (sk.yataThunder.timer <= 0) {
+                    sk.yataThunder.timer = sk.yataThunder.cooldown * cdr;
+                    const strikes = sk.yataThunder.evolved ? 6 : (1 + Math.floor(sk.yataThunder.level / 2));
+                    for (let st = 0; st < strikes; st++) {
+                        if (enemies.length === 0) break;
+                        const randomEnemy = enemies[Math.floor(Math.random() * enemies.length)];
+                        projectiles.push({
+                            type: 'thunder_bolt',
+                            x: randomEnemy.x,
+                            y: randomEnemy.y,
+                            damage: (105 + sk.yataThunder.level * 32) * dmgMult,
+                            radius: 70,
+                            lifetime: 0.3
+                        });
+                    }
+                    audio.playThunder();
+                }
+            }
 
-      // 神話雙古角
-      ctx.fillStyle = '#222';
-      ctx.beginPath();
-      ctx.moveTo(-18, -40); ctx.quadraticCurveTo(-38, -68, -26, -74); ctx.lineTo(-10, -44);
-      ctx.moveTo(18, -40); ctx.quadraticCurveTo(38, -68, 26, -74); ctx.lineTo(10, -44);
-      ctx.fill();
-      ctx.stroke();
+            // 5. 守護・碧玉菩提 (Orbiting Jade Beads Shield)
+            if (sk.juzuBeads.level > 0) {
+                sk.juzuBeads.angle += dt * 3.4;
+                const beadCount = sk.juzuBeads.evolved ? 8 : (3 + sk.juzuBeads.level);
+                const orbitR = 88;
 
-      // 巨大的金色豎瞳 (凶光四溢)
-      ctx.fillStyle = '#FFE066';
-      ctx.beginPath();
-      ctx.ellipse(-14, -10, 8, 14, 0, 0, Math.PI * 2);
-      ctx.ellipse(14, -10, 8, 14, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#2B2A29';
-      ctx.fillRect(-16, -18, 4, 16);
-      ctx.fillRect(12, -18, 4, 16);
+                for (let b = 0; b < beadCount; b++) {
+                    const ang = sk.juzuBeads.angle + (Math.PI * 2 / beadCount) * b;
+                    const bx = player.x + Math.cos(ang) * orbitR;
+                    const by = player.y + Math.sin(ang) * orbitR;
 
-    } else if (this.type === 20) {
-      // 20. 【神話首領二：禍津日神・須佐狂靈】
-      // 懸浮暗紫勾玉陣、雷霆神冕、巨身威壓
-      const godGrad = ctx.createRadialGradient(0, 0, 15, 0, 0, 60);
-      godGrad.addColorStop(0, '#4A148C');
-      godGrad.addColorStop(0.7, '#240046');
-      godGrad.addColorStop(1, '#0F001A');
-      ctx.fillStyle = godGrad;
-      ctx.beginPath();
-      ctx.arc(0, 0, 56, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#9C27B0';
-      ctx.lineWidth = 5;
-      ctx.stroke();
+                    enemies.forEach(e => {
+                        if (Math.hypot(e.x - bx, e.y - by) < 22 + e.radius) {
+                            applyDamageToEnemy(e, (25 + sk.juzuBeads.level * 9) * dmgMult * dt * 2.2, false);
+                        }
+                    });
+                }
+            }
 
-      // 身周環繞懸浮勾玉雷火
-      for (let a = 0; a < 6; a++) {
-        const ang = this.animTimer + a * (Math.PI / 3);
-        const ox = Math.cos(ang) * 78;
-        const oy = Math.sin(ang) * 78;
-        ctx.fillStyle = '#BA68C8';
-        ctx.beginPath();
-        ctx.arc(ox, oy, 11, 0, Math.PI * 2);
-        ctx.fill();
-      }
+            // 6. 竹影・墨分身 (Panda Ink Clones)
+            if (sk.shadowClone.level > 0) {
+                sk.shadowClone.timer -= dt;
+                if (sk.shadowClone.timer <= 0) {
+                    sk.shadowClone.timer = sk.shadowClone.cooldown * cdr;
+                    const offsetAngle = Math.random() * Math.PI * 2;
+                    const cloneX = player.x + Math.cos(offsetAngle) * 105;
+                    const cloneY = player.y + Math.sin(offsetAngle) * 105;
 
-      // 天神威武雙瞳
-      ctx.fillStyle = '#E1BEE7';
-      ctx.shadowColor = '#E1BEE7';
-      ctx.shadowBlur = 12;
-      ctx.beginPath();
-      ctx.ellipse(-18, -12, 10, 6, -0.2, 0, Math.PI * 2);
-      ctx.ellipse(18, -12, 10, 6, 0.2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
+                    projectiles.push({
+                        type: 'shadow_clone_strike',
+                        x: cloneX,
+                        y: cloneY,
+                        damage: (75 + sk.shadowClone.level * 22) * dmgMult,
+                        radius: 60,
+                        lifetime: 0.48
+                    });
+                }
+            }
 
-    // 血條 (精緻和風立體迷你條)
-    if (this.hp < this.maxHp) {
-      const barW = this.radius * 1.8;
-      ctx.fillStyle = 'rgba(30, 28, 26, 0.7)';
-      ctx.fillRect(-barW / 2, -this.radius - 14, barW, 5);
-      ctx.fillStyle = '#FF1E44';
-      ctx.fillRect(-barW / 2, -this.radius - 14, barW * (Math.max(0, this.hp) / this.maxHp), 5);
-    }
+            // 7. 修羅・水墨旋渦 (Ink Pull Vortex)
+            if (sk.bloodVortex.level > 0) {
+                sk.bloodVortex.timer -= dt;
+                if (sk.bloodVortex.timer <= 0) {
+                    sk.bloodVortex.timer = sk.bloodVortex.cooldown * cdr;
+                    let targetX = player.x + Math.cos(player.angle) * 170;
+                    let targetY = player.y + Math.sin(player.angle) * 170;
 
-    ctx.restore();
-  }
-}
+                    projectiles.push({
+                        type: 'blood_vortex',
+                        x: targetX,
+                        y: targetY,
+                        damage: (40 + sk.bloodVortex.level * 14) * dmgMult,
+                        radius: 120,
+                        lifetime: 3.0
+                    });
+                }
+            }
 
-/* =========================================================================
-   6. 招式系統 (升級與強化 - 水藍/翡翠/墨痕流光粒子，視覺震撼)
-   ========================================================================= */
-function updateCombatSkills(dt) {
-  // 1. 居合一閃 (扇形弧光飛刃)
-  const slash = Game.skills.slash;
-  if (slash.level > 0) {
-    slash.timer -= dt;
-    if (slash.timer <= 0) {
-      triggerIaiSlash();
-      slash.timer = slash.cd * (1 - Game.skills.clear_mind.level * 0.08);
-    }
-  }
+            // 8. 青龍・貫日破空 (Great Dragon Wave Slash)
+            if (sk.waterDragon.level > 0) {
+                sk.waterDragon.timer -= dt;
+                if (sk.waterDragon.timer <= 0) {
+                    sk.waterDragon.timer = sk.waterDragon.cooldown * cdr;
+                    projectiles.push({
+                        type: 'water_dragon',
+                        x: player.x,
+                        y: player.y,
+                        vx: Math.cos(player.angle) * 500,
+                        vy: Math.sin(player.angle) * 500,
+                        angle: player.angle,
+                        damage: (135 + sk.waterDragon.level * 40) * dmgMult,
+                        radius: 70,
+                        lifetime: 2.0,
+                        pierce: 99
+                    });
+                    audio.playKatanaSlash(true);
+                }
+            }
+        }
 
-  // 2. 追魂符咒 (旋轉自導飛彈)
-  const talisman = Game.skills.talisman;
-  if (talisman.level > 0) {
-    talisman.timer -= dt;
-    if (talisman.timer <= 0) {
-      triggerTalismans();
-      talisman.timer = talisman.cd * (1 - Game.skills.clear_mind.level * 0.08);
-    }
-  }
+        /* ==========================================================
+           DAMAGE HANDLING & COMBAT FEEDBACK
+        ========================================================== */
+        function applyDamageToEnemy(enemy, damage, isCrit = false) {
+            enemy.hp -= damage;
+            enemy.flashTimer = 0.12;
+            player.ultCharge = Math.min(player.maxUltCharge, player.ultCharge + (isCrit ? 1.6 : 0.7));
 
-  // 3. 櫻吹雪 (身周刀刃旋風)
-  const sakura = Game.skills.sakura;
-  if (sak
+            const color = isCrit ? THEME.playerCyan : THEME.sumiBlack;
+            const text = isCrit ? `極 ${Math.round(damage)}` : `${Math.round(damage)}`;
+            addFloatingText(enemy.x, enemy.y - 12, text, color, isCrit ? 26 : 16);
+
+            createInkSplatter(enemy.x, enemy.y, isCrit ? THEME.playerCyan : THEME.sumiBlack, isCrit ? 8 : 4);
+
+            if (enemy.hp <= 0) {
+                onEnemySlain(enemy);
+            }
+        }
+
+        function onEnemySlain(enemy) {
+            killCount++;
+            comboCount++;
+            comboTimer = 3.0;
+            if (comboCount > maxCombo) maxCombo = comboCount;
+
+            createInkSplatter(enemy.x, enemy.y, THEME.enemyCrimson, 15);
+            shockwaves.push({
+                x: enemy.x,
+                y: enemy.y,
+                r: 5,
+                maxR: enemy.isBoss ? 130 : 45,
+                color: THEME.enemyCrimson,
+                width: 3.5,
+                alpha: 1
+            });
+
+            // Magatama Drop
+            magatamas.push({
+                x: enemy.x,
+                y: enemy.y,
+                val: enemy.exp,
+                vx: (Math.random() - 0.5) * 60,
+                vy: (Math.random() - 0.5) * 60
+            });
+
+            const idx = enemies.indexOf(enemy);
+            if (idx !== -1) enemies.splice(idx, 1);
+
+            if (enemy.isBoss) {
+                audio.playThunder();
+                screenShake = 24;
+                addFloatingText(enemy.x, enemy.y - 45, '【神話魔煞・討滅】', THEME.bambooGreen, 36);
+
+                // Bosses drop guaranteed Onigiri Feast + Bell
+                droppedItems.push({ x: enemy.x - 20, y: enemy.y, type: 'onigiri' });
+                droppedItems.push({ x: enemy.x + 20, y: enemy.y, type: 'bell' });
+            }
+        }
+
+        function damageMapProp(prop, dmg) {
+            prop.hp -= dmg;
+            createInkSplatter(prop.x, prop.y, '#787067', 4);
+            if (prop.hp <= 0) {
+                // Drop items: Onigiri (35%), Bomb (25%), Bell (20%), Magatama (20%)
+                const r = Math.random();
+                if (r < 0.35) {
+                    droppedItems.push({ x: prop.x, y: prop.y, type: 'onigiri' });
+                } else if (r < 0.6) {
+                    droppedItems.push({ x: prop.x, y: prop.y, type: 'bomb' });
+                } else if (r < 0.8) {
+                    droppedItems.push({ x: prop.x, y: prop.y, type: 'bell' });
+                } else {
+                    magatamas.push({ x: prop.x, y: prop.y, val: 25, vx: 0, vy: 0 });
+                }
+
+                const idx = mapProps.indexOf(prop);
+                if (idx !== -1) mapProps.splice(idx, 1);
+            }
+        }
+
+        function addFloatingText(x, y, text, color, size = 18) {
+            floatingTexts.push({
+                x, y,
+                text,
+                color,
+                size,
+                alpha: 1,
+                vy: -55
+            });
+        }
+
+        function createInkSplatter(x, y, color, count = 8) {
+            for (let i = 0; i < count; i++) {
+                const spd = 60 + Math.random() * 220;
+                const ang = Math.random() * Math.PI * 2;
+                particles.push({
+                    x, y,
+                    vx: Math.cos(ang) * spd,
+                    vy: Math.sin(ang) * spd,
+                    radius: 2.2 + Math.random() * 4,
+                    color: color,
+                    alpha: 1,
+                    decay: 1.8 + Math.random() * 2.4
+                });
+            }
+        }
+
+        /* ==========================================================
+           2D DRAWING: BAMBOO RONIN PANDA & MYTHICAL YOUKAI
+        ========================================================== */
+        function drawDropShadow(ctx, x, y, radiusX, radiusY) {
+            ctx.save();
+            ctx.fillStyle = THEME.shadow;
+            ctx.beginPath();
+            ctx.ellipse(x, y, radiusX, radiusY, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // Cute yet Badass Bamboo Ronin Panda
+        function drawBambooPanda(ctx, p) {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+
+            // Ground Soft Oval Shadow
+            drawDropShadow(ctx, 0, 18, 22, 9);
+
+            ctx.scale(p.facing, 1);
+
+            const bob = Math.sin(p.breathPhase) * 2.2;
+            const legSwing = Math.sin(p.walkCycle) * 6;
+
+            // Ghost Afterimages during Dash
+            if (p.isDashing) {
+                ctx.fillStyle = 'rgba(0, 242, 255, 0.45)';
+                ctx.beginPath();
+                ctx.arc(-p.facing * 18, -6, p.radius * 1.15, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Parry Water-Blue Aura
+            if (p.isParrying) {
+                ctx.strokeStyle = THEME.playerCyan;
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.arc(0, 0, p.radius + 18, -Math.PI * 0.45, Math.PI * 0.45);
+                ctx.stroke();
+            }
+
+            // 1. Paws / Feet (Black fur)
+            ctx.fillStyle = '#1D1C1B';
+            ctx.beginPath();
+            ctx.ellipse(-7 + legSwing, 14, 5, 8, 0.2, 0, Math.PI * 2);
+            ctx.ellipse(7 - legSwing, 14, 5, 8, -0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 2. Panda Fluffy Body (White with Black Shoulder Fur)
+            // White Belly / Torso
+            const bellyGrad = ctx.createRadialGradient(0, bob, 4, 0, bob, 16);
+            bellyGrad.addColorStop(0, '#FFFFFF');
+            bellyGrad.addColorStop(0.85, '#EBE6DC');
+            bellyGrad.addColorStop(1, '#D8D1C3');
+            ctx.fillStyle = bellyGrad;
+            ctx.beginPath();
+            ctx.arc(0, bob, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Black Shoulder Wrap (Panda shoulder fur pattern)
+            ctx.fillStyle = '#1F1E1D';
+            ctx.beginPath();
+            ctx.arc(0, -3 + bob, 14.5, Math.PI * 0.85, Math.PI * 2.15);
+            ctx.fill();
+
+            // Woven Bamboo Shoulder Pauldron (左肩竹製肩當)
+            ctx.fillStyle = '#4EA868';
+            ctx.strokeStyle = '#276839';
+            ctx.lineWidth = 1.5;
+            ctx.fillRect(-14, -8 + bob, 6, 12);
+            ctx.strokeRect(-14, -8 + bob, 6, 12);
+
+            // Bamboo Katana Sheath & Jade Tsuba at hip
+            ctx.save();
+            ctx.rotate(0.32);
+            ctx.fillStyle = '#2B7A4B'; // Jade bamboo scabbard
+            ctx.fillRect(-8, 3, 30, 4);
+            ctx.fillStyle = THEME.playerCyan; // Glowing cyan guard
+            ctx.fillRect(-9, 2, 3.5, 6);
+            ctx.restore();
+
+            // 3. Panda Head & Fluffy Ears
+            // Fluffy Black Ears
+            ctx.fillStyle = '#1A1918';
+            ctx.beginPath();
+            ctx.arc(-11, -19 + bob, 5.5, 0, Math.PI * 2);
+            ctx.arc(11, -19 + bob, 5.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // White Face
+            const faceGrad = ctx.createRadialGradient(0, -11 + bob, 3, 0, -11 + bob, 13);
+            faceGrad.addColorStop(0, '#FFFFFF');
+            faceGrad.addColorStop(1, '#ECE7DC');
+            ctx.fillStyle = faceGrad;
+            ctx.beginPath();
+            ctx.arc(0, -11 + bob, 12.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Distinctive Panda Black Eye Patches (Fierce yet adorable)
+            ctx.fillStyle = '#1C1B1A';
+            ctx.beginPath();
+            ctx.ellipse(-5.5, -11 + bob, 4.5, 3.2, -0.3, 0, Math.PI * 2);
+            ctx.ellipse(5.5, -11 + bob, 4.5, 3.2, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Determined Eyes (White pupil dot + glint)
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(-4.5, -11 + bob, 1.4, 0, Math.PI * 2);
+            ctx.arc(4.5, -11 + bob, 1.4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Cute Snout & Inked Nose
+            ctx.fillStyle = '#1E1D1C';
+            ctx.beginPath();
+            ctx.ellipse(0, -7.5 + bob, 2.8, 1.8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 4. Ronin Bamboo Straw Hat (菅笠 Sugegasa) with dynamic drop shadow
+            ctx.fillStyle = '#8F7A57';
+            ctx.strokeStyle = '#574830';
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.moveTo(-18, -15 + bob);
+            ctx.lineTo(0, -25 + bob);
+            ctx.lineTo(18, -15 + bob);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Vermilion Hachimaki Headband Ribbon blowing in wind
+            ctx.fillStyle = '#C93B2B';
+            ctx.beginPath();
+            ctx.moveTo(-10, -15 + bob);
+            ctx.quadraticCurveTo(-22, -12 + bob, -28, -19 + bob);
+            ctx.lineTo(-26, -14 + bob);
+            ctx.closePath();
+            ctx.fill();
+
+            // Drawn Bamboo Katana when parrying or attacking
+            if (p.isParrying || keys.Space) {
+                ctx.strokeStyle = THEME.playerCyan;
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.moveTo(8, -4 + bob);
+                ctx.quadraticCurveTo(28, -22 + bob, 40, -8 + bob);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        // Mythical Monsters Drawing (Depth, Silhouette, No cheap geometry)
+        function drawMonster(ctx, e) {
+            ctx.save();
+            ctx.translate(e.x, e.y);
+
+            drawDropShadow(ctx, 0, e.radius * 0.85, e.radius * 0.9, e.radius * 0.42);
+
+            const flash = e.flashTimer > 0;
+            const bob = Math.sin(e.animPhase) * 3;
+
+            if (e.type === 'tengu') {
+                // Crow Tengu: Layered obsidian wings, vermilion long beak
+                ctx.fillStyle = flash ? '#FFFFFF' : '#1F1E1D';
+                const wingSwing = Math.sin(e.animPhase * 8) * 14;
+
+                // Left Wing
+                ctx.beginPath();
+                ctx.moveTo(-5, -3);
+                ctx.lineTo(-26, -16 + wingSwing);
+                ctx.lineTo(-14, 8);
+                ctx.closePath();
+                ctx.fill();
+
+                // Right Wing
+                ctx.beginPath();
+                ctx.moveTo(5, -3);
+                ctx.lineTo(26, -16 - wingSwing);
+                ctx.lineTo(14, 8);
+                ctx.closePath();
+                ctx.fill();
+
+                // Body & Getas
+                ctx.beginPath();
+                ctx.arc(0, bob, e.radius * 0.85, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Vermilion Tengu Mask & Long Beak
+                ctx.fillStyle = flash ? '#FFFFFF' : THEME.enemyCrimson;
+                ctx.beginPath();
+                ctx.moveTo(0, -4 + bob);
+                ctx.lineTo(17, 1 + bob);
+                ctx.lineTo(0, 6 + bob);
+                ctx.closePath();
+                ctx.fill();
+
+            } else if (e.type === 'ashigaru') {
+                // Skeletal Samurai: Horned Kabuto helmet, war banner, glowing red eyes
+                ctx.fillStyle = flash ? '#FFFFFF' : '#DDD4C4';
+                ctx.beginPath();
+                ctx.arc(0, bob, e.radius * 0.78, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Conical Jingasa Hat
+                ctx.fillStyle = flash ? '#FFFFFF' : '#332E29';
+                ctx.beginPath();
+                ctx.moveTo(-e.radius * 1.15, -4 + bob);
+                ctx.lineTo(0, -e.radius * 1.25 + bob);
+                ctx.lineTo(e.radius * 1.15, -4 + bob);
+                ctx.closePath();
+                ctx.fill();
+
+                // Glowing Crimson Eyes
+                ctx.fillStyle = THEME.enemyCrimson;
+                ctx.fillRect(-5, -1 + bob, 3, 3);
+                ctx.fillRect(2, -1 + bob, 3, 3);
+
+                // Sashimono War Banner on back
+                ctx.fillStyle = THEME.enemyDarkRed;
+                ctx.fillRect(-18, -24 + bob, 10, 20);
+                ctx.strokeStyle = '#1D1C1B';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(-18, -24 + bob, 10, 20);
+
+            } else if (e.type === 'kitsune') {
+                // Mythical Spirit Kitsune: 3 Curved tails shedding purple embers
+                for (let t = 0; t < 3; t++) {
+                    const tAng = (Math.PI / 3) * (t - 1) + Math.PI;
+                    const tx = Math.cos(tAng + Math.sin(e.animPhase * 3 + t) * 0.35) * 24;
+                    const ty = Math.sin(tAng + Math.sin(e.animPhase * 3 + t) * 0.35) * 24;
+
+                    const tailGrad = ctx.createRadialGradient(tx, ty, 2, tx, ty, 14);
+                    tailGrad.addColorStop(0, '#FFFFFF');
+                    tailGrad.addColorStop(0.5, THEME.enemyPurple);
+                    tailGrad.addColorStop(1, 'transparent');
+                    ctx.fillStyle = tailGrad;
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Fox Mask
+                ctx.fillStyle = flash ? '#FFFFFF' : '#FAF8F5';
+                ctx.strokeStyle = THEME.enemyCrimson;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, bob, e.radius * 0.88, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Whiskers
+                ctx.strokeStyle = THEME.enemyCrimson;
+                ctx.beginPath();
+                ctx.moveTo(-6, 2 + bob); ctx.lineTo(-13, 5 + bob);
+                ctx.moveTo(6, 2 + bob); ctx.lineTo(13, 5 + bob);
+                ctx.stroke();
+
+            } else if (e.type === 'oni') {
+                // Aka-Oni Brute: Bull horns, spiked Kanabo club
+                const oniGrad = ctx.createRadialGradient(0, -8 + bob, 4, 0, 0, e.radius);
+                oniGrad.addColorStop(0, flash ? '#FFFFFF' : THEME.enemyCrimson);
+                oniGrad.addColorStop(1, flash ? '#FFFFFF' : THEME.enemyDarkRed);
+                ctx.fillStyle = oniGrad;
+                ctx.beginPath();
+                ctx.arc(0, bob, e.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Dual Golden Bull Horns
+                ctx.fillStyle = THEME.gold;
+                ctx.beginPath();
+                ctx.moveTo(-10, -e.radius + 4 + bob);
+                ctx.lineTo(-18, -e.radius - 14 + bob);
+                ctx.lineTo(-4, -e.radius + 2 + bob);
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(10, -e.radius + 4 + bob);
+                ctx.lineTo(18, -e.radius - 14 + bob);
+                ctx.lineTo(4, -e.radius + 2 + bob);
+                ctx.fill();
+
+                // Spiked Kanabo
+                ctx.fillStyle = '#22201F';
+                ctx.fillRect(e.radius * 0.8, -e.radius, 9, 42);
+
+            } else if (e.isBoss) {
+                // Mythical Boss 1: 【羅剎般若・牛頭鬼神】
+                if (e.type === 'rasetsu_hannya') {
+                    // Spectral Floating Katanas (Strictly Cursed Crimson / Purple)
+                    e.floatingBladesAngle = (e.floatingBladesAngle || 0) + 0.05;
+                    for (let b = 0; b < 4; b++) {
+                        const ba = e.floatingBladesAngle + (Math.PI / 2) * b;
+                        const bx = Math.cos(ba) * (e.radius + 28);
+                        const by = Math.sin(ba) * (e.radius + 28);
+                        ctx.fillStyle = THEME.enemyCrimson;
+                        ctx.save();
+                        ctx.translate(bx, by);
+                        ctx.rotate(ba + Math.PI / 2);
+                        ctx.fillRect(-3, -16, 6, 32);
+                        ctx.restore();
+                    }
+
+                    // Menacing Hannya Mask Silhouette
+                    ctx.strokeStyle = THEME.enemyCrimson;
+                    ctx.lineWidth = 4.5;
+                    ctx.beginPath();
+                    ctx.arc(0, bob, e.radius + 6, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    const bossGrad = ctx.createRadialGradient(0, bob, 6, 0, bob, e.radius);
+                    bossGrad.addColorStop(0, flash ? '#FFFFFF' : '#45101A');
+                    bossGrad.addColorStop(1, flash ? '#FFFFFF' : '#1A060A');
+                    ctx.fillStyle = bossGrad;
+                    ctx.beginPath();
+                    ctx.arc(0, bob, e.radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Giant Ox Horns
+                    ctx.fillStyle = '#A3152B';
+                    ctx.beginPath();
+                    ctx.moveTo(-16, -e.radius + bob);
+                    ctx.lineTo(-32, -e.radius - 24 + bob);
+                    ctx.lineTo(-8, -e.radius + 8 + bob);
+                    ctx.fill();
+
+                    ctx.beginPath();
+                    ctx.moveTo(16, -e.radius + bob);
+                    ctx.lineTo(32, -e.radius - 24 + bob);
+                    ctx.lineTo(8, -e.radius + 8 + bob);
+                    ctx.fill();
+
+                } else if (e.type === 'otakemaru_yasha') {
+                    // Mythical Boss 2: 【大嶽丸・雷霆夜叉】 - Triple Thunder Halos
+                    const haloGrad = ctx.createLinearGradient(-40, -40, 40, 40);
+                    haloGrad.addColorStop(0, THEME.enemyPurple);
+                    haloGrad.addColorStop(1, THEME.enemyCrimson);
+                    ctx.strokeStyle = haloGrad;
+                    ctx.lineWidth = 5;
+                    ctx.beginPath();
+                    ctx.arc(0, bob, e.radius + 12, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // Main Deific Body
+                    const yashaGrad = ctx.createRadialGradient(0, bob, 10, 0, bob, e.radius);
+                    yashaGrad.addColorStop(0, flash ? '#FFFFFF' : '#521443');
+                    yashaGrad.addColorStop(1, flash ? '#FFFFFF' : '#1F0619');
+                    ctx.fillStyle = yashaGrad;
+                    ctx.beginPath();
+                    ctx.arc(0, bob, e.radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Third Divine Eye
+                    ctx.fillStyle = THEME.gold;
+                    ctx.beginPath();
+                    ctx.ellipse(0, -8 + bob, 4, 7, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Boss HP Bar & Calligraphy Title above head
+                ctx.fillStyle = THEME.sumiBlack;
+                ctx.fillRect(-50, -e.radius - 26 + bob, 100, 8);
+                ctx.fillStyle = THEME.enemyCrimson;
+                ctx.fillRect(-49, -e.radius - 25 + bob, 98 * Math.max(0, e.hp / e.maxHp), 6);
+            }
+
+            ctx.restore();
+        }
+
+        // Draw Map Props (Shrines, Lanterns, Urns)
+        function drawMapProp(ctx, p) {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            drawDropShadow(ctx, 4, p.radius * 0.75, p.radius * 1.1, p.radius * 0.45);
+
+            if (p.type === 'shrine') {
+                // Stone Miniature Shrine
+                ctx.fillStyle = '#6E675E';
+                ctx.fillRect(-16, -20, 32, 28);
+                // Roof
+                ctx.fillStyle = '#3F3B36';
+                ctx.beginPath();
+                ctx.moveTo(-22, -20);
+                ctx.lineTo(0, -34);
+                ctx.lineTo(22, -20);
+                ctx.closePath();
+                ctx.fill();
+            } else if (p.type === 'lantern') {
+                // Stone Lantern
+                ctx.fillStyle = '#787067';
+                ctx.fillRect(-6, -6, 12, 20);
+                ctx.fillRect(-12, -18, 24, 12);
+                ctx.fillStyle = 'rgba(255, 180, 50, 0.8)';
+                ctx.fillRect(-5, -14, 10, 6);
+            } else if (p.type === 'urn') {
+                // Ceramic Ancient Urn
+                ctx.fillStyle = '#8B5A2B';
+                ctx.beginPath();
+                ctx.arc(0, 0, 14, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#4A2A0C';
+                ctx.fillRect(-8, -14, 16, 4);
+            } else {
+                // Bamboo Cluster
+                ctx.fillStyle = '#2E7D32';
+                ctx.fillRect(-8, -25, 4, 35);
+                ctx.fillRect(4, -30, 4, 40);
+            }
+
+            ctx.restore();
+        }
+
+        // Draw Dropped Pickups (Onigiri, Screen-wipe Bomb, Magnet Bell)
+        function drawDroppedItem(ctx, item) {
+            ctx.save();
+            ctx.translate(item.x, item.y);
+            drawDropShadow(ctx, 0, 8, 12, 5);
+
+            if (item.type === 'onigiri') {
+                // White Rice Triangle + Seaweed Nori
+                ctx.fillStyle = '#FAF8F5';
+                ctx.strokeStyle = '#DCD3C5';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(0, -12);
+                ctx.lineTo(11, 7);
+                ctx.lineTo(-11, 7);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#1E1D1C';
+                ctx.fillRect(-5, 0, 10, 7);
+            } else if (item.type === 'bomb') {
+                // Screen-wipe Cursed Talisman Bomb
+                ctx.fillStyle = THEME.enemyCrimson;
+                ctx.beginPath();
+                ctx.arc(0, 0, 10, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = THEME.gold;
+                ctx.font = 'bold 10px serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('雷', 0, 4);
+            } else if (item.type === 'bell') {
+                // Golden Suzu Magnet Bell
+                ctx.fillStyle = THEME.gold;
+                ctx.beginPath();
+                ctx.arc(0, 0, 9, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        /* ==========================================================
+           SKILL SELECTION CARDS WITH LIVE MINI CANVAS PREVIEWS
+        ========================================================== */
+        function renderSkillPreview(canvasEl, skillKey) {
+            const pCtx = canvasEl.getContext('2d');
+            const pw = canvasEl.width = 240;
+            const ph = canvasEl.height = 110;
+            let time = 0;
+
+            function animate() {
+                if (gameState !== 'UPGRADE') return;
+                time += 0.035;
+                pCtx.fillStyle = '#F4EFE6';
+                pCtx.fillRect(0, 0, pw, ph);
+
+                // Grid background
+                pCtx.strokeStyle = '#E2D9CC';
+                pCtx.lineWidth = 1;
+                pCtx.beginPath();
+                pCtx.moveTo(0, ph / 2); pCtx.lineTo(pw, ph / 2);
+                pCtx.moveTo(pw / 2, 0); pCtx.lineTo(pw / 2, ph);
+                pCtx.stroke();
+
+                const cx = pw / 2;
+                const cy = ph / 2;
+
+                // Mini Panda Hero in preview
+                pCtx.fillStyle = '#1F1E1D';
+                pCtx.beginPath();
+                pCtx.arc(cx - 32, cy, 9, 0, Math.PI * 2);
+                pCtx.fill();
+
+                if (skillKey === 'iaiSlash') {
+                    // Electric Cyan / Jade Crescent Slash Arc
+                    const sweep = (time * 3.2) % Math.PI;
+                    pCtx.strokeStyle = THEME.playerCyan;
+                    pCtx.lineWidth = 4.5;
+                    pCtx.beginPath();
+                    pCtx.arc(cx - 32, cy, 38, sweep - 0.7, sweep + 0.7);
+                    pCtx.stroke();
+                } else if (skillKey === 'ofuda') {
+                    // Flying Talismans
+                    for (let f = 0; f < 3; f++) {
+                        const fa = time * 2.5 + f * 2.1;
+                        const fx = cx + Math.cos(fa) * 42;
+                        const fy = cy + Math.sin(fa) * 24;
+                        pCtx.fillStyle = '#FAF8F5';
+                        pCtx.strokeStyle = THEME.bambooGreen;
+                        pCtx.lineWidth = 1.5;
+                        pCtx.fillRect(fx - 4, fy - 7, 8, 14);
+                        pCtx.strokeRect(fx - 4, fy - 7, 8, 14);
+                    }
+                } else if (skillKey === 'sakuraStorm') {
+                    // Orbiting Razor Petals
+                    for (let s = 0; s < 6; s++) {
+                        const sa = time * 3.2 + s * (Math.PI / 3);
+                        const sx = cx + Math.cos(sa) * 32;
+                        const sy = cy + Math.sin(sa) * 32;
+                        pCtx.fillStyle = '#FF4D6D';
+                        pCtx.beginPath();
+                        pCtx.ellipse(sx, sy, 5, 2.5, sa, 0, Math.PI * 2);
+                        pCtx.fill();
+                    }
+                } else if (skillKey === 'yataThunder') {
+                    // Cyan Divine Lightning
+                    if (Math.sin(time * 5) > 0.4) {
+                        pCtx.strokeStyle = THEME.playerCyan;
+                        pCtx.lineWidth = 3.5;
+                        pCtx.beginPath();
+                        pCtx.moveTo(cx + 25, 10);
+                        pCtx.lineTo(cx + 18, cy - 8);
+                        pCtx.lineTo(cx + 32, cy + 2);
+                        pCtx.lineTo(cx + 25, ph - 10);
+                        pCtx.stroke();
+                    }
+                } else if (skillKey === 'juzuBeads') {
+                    // Orbiting Jade Prayer Beads
+                    for (let b = 0; b < 5; b++) {
+                        const ba = time * 2.8 + b * (Math.PI * 2 / 5);
+                        pCtx.fillStyle = THEME.bambooGreen;
+                        pCtx.beginPath();
+                        pCtx.arc(cx + Math.cos(ba) * 28, cy + Math.sin(ba) * 28, 4.5, 0, Math.PI * 2);
+                        pCtx.fill();
+                    }
+                } else if (skillKey === 'shadowClone') {
+                    // Twin Ink Clone
+                    pCtx.fillStyle = 'rgba(0, 242, 255, 0.6)';
+                    pCtx.beginPath();
+                    pCtx.arc(cx + 26, cy + Math.sin(time * 4) * 8, 8, 0, Math.PI * 2);
+                    pCtx.fill();
+                } else if (skillKey === 'bloodVortex') {
+                    // Ink Pull Vortex
+                    pCtx.strokeStyle = THEME.bambooGreen;
+                    pCtx.lineWidth = 2.8;
+                    pCtx.beginPath();
+                    pCtx.arc(cx + 20, cy, 22 * (0.6 + Math.sin(time * 4) * 0.3), 0, Math.PI * 2);
+                    pCtx.stroke();
+                } else if (skillKey === 'waterDragon') {
+                    // Water-Blue Dragon Wave
+                    pCtx.strokeStyle = THEME.playerBlue;
+                    pCtx.lineWidth = 4;
+                    pCtx.beginPath();
+                    for (let x = -20; x < 60; x += 5) {
+                        const y = Math.sin(x * 0.12 - time * 5) * 12;
+                        if (x === -20) pCtx.moveTo(cx + x, cy + y);
+                        else pCtx.lineTo(cx + x, cy + y);
+                    }
+                    pCtx.stroke();
+                } else {
+                    // Passive Heart / Haste
+                    pCtx.fillStyle = THEME.bambooGreen;
+                    pCtx.font = 'bold 24px serif';
+                    pCtx.textAlign = 'center';
+                    pCtx.fillText('道', cx + 15, cy + 8);
+                }
+
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        const UPGRADE_POOL = [
+            { key: 'iaiSlash', name: '青竹居合・一文字', desc: '向前方施展青玉水藍拔刀斬波，貫穿切裂敵群', type: 'weapon' },
+            { key: 'ofuda', name: '破邪・竹林符咒', desc: '釋放追蹤紙符，自動索敵並引爆妖邪', type: 'weapon' },
+            { key: 'sakuraStorm', name: '櫻吹雪・散華刃', desc: '周身旋轉鋒銳櫻花花瓣刀陣，近身絞殺', type: 'weapon' },
+            { key: 'yataThunder', name: '九天神雷・天罰', desc: '引天之雷罰連鎖轟擊全場魔怪', type: 'weapon' },
+            { key: 'juzuBeads', name: '守護・碧玉菩提', desc: '翡翠佛珠環繞周身格擋傷害並重創臨近敵人', type: 'weapon' },
+            { key: 'shadowClone', name: '竹影・墨分身', desc: '召喚墨影熊貓分身同步施展居合斬擊', type: 'weapon' },
+            { key: 'bloodVortex', name: '修羅・水墨旋渦', desc: '在魔群密集處引爆水墨旋渦吸扯絞殺', type: 'weapon' },
+            { key: 'waterDragon', name: '青龍・貫日破空', desc: '向前奔騰狂暴水龍墨痕，巨幅貫通傷害', type: 'weapon' },
+            { key: 'passiveIai', name: '居合拔刀術', desc: '心隨意動，全招式冷卻時間縮減 20%', type: 'passive' },
+            { key: 'passivePower', name: '功夫熊貓剛力', desc: '內力暴增，全部攻擊與反彈傷害提高 25%', type: 'passive' },
+            { key: 'passiveHaste', name: '疾風竹影步', desc: '步履如風，移動速度與翻滾距離提升 18%', type: 'passive' },
+            { key: 'passiveSoul', name: '勾玉靈魂吸引', desc: '心靈通透，魂魄勾玉磁吸範圍擴大 40%', type: 'passive' },
+            { key: 'passiveParry', name: '心眼見切反彈', desc: '延長居合彈反窗口 35%，反彈子彈傷害翻倍', type: 'passive' }
+        ];
+
+        function triggerLevelUp() {
+            audio.playLevelUp();
+            gameState = 'UPGRADE';
+
+            const cardDeck = document.getElementById('upgrade-card-deck');
+            cardDeck.innerHTML = '';
+
+            const shuffled = [...UPGRADE_POOL].sort(() => 0.5 - Math.random());
+            const choices = shuffled.slice(0, 3);
+
+            choices.forEach((opt, idx) => {
+                const card = document.createElement('div');
+                card.className = 'bg-[#FAF8F5] border-2 border-[#2B2A29] hover:border-[#00F2FF] p-4 rounded-xl shadow-xl flex flex-col items-center justify-between cursor-pointer transition-all hover:-translate-y-1 group relative overflow-hidden washi-bg';
+
+                const curLvl = player.skills[opt.key].level;
+                const nextLvl = curLvl + 1;
+
+                card.innerHTML = `
+                    <div class="w-full flex items-center justify-between mb-2">
+                        <span class="hanko-stamp text-xs ${opt.type === 'weapon' ? 'border-[#00A86B] text-[#00A86B]' : ''}">${opt.type === 'weapon' ? '神武' : '心法'}</span>
+                        <span class="text-xs font-mono font-bold text-[#8A7F71]">階位 ${curLvl === 0 ? '初覺' : 'Lv.' + nextLvl}</span>
+                    </div>
+
+                    <div class="w-full h-24 bg-[#F2ECE1] rounded-lg border border-[#DCD3C5] overflow-hidden relative shadow-inner mb-3">
+                        <canvas id="preview-canvas-${idx}" class="w-full h-full block"></canvas>
+                    </div>
+
+                    <div class="text-center mb-3">
+                        <h3 class="text-lg font-black text-[#2B2A29] group-hover:text-[#00A86B] font-serif transition-colors">${opt.name}</h3>
+                        <p class="text-xs text-[#6B6255] font-serif mt-1 leading-relaxed">${opt.desc}</p>
+                    </div>
+
+                    <button class="w-full py-2 bg-[#2B2A29] group-hover:bg-[#00A86B] text-[#FAF8F5] font-bold text-xs rounded-lg transition-colors font-serif">
+                        參悟修煉
+                    </button>
+                `;
+
+                card.addEventListener('click', () => {
+                    selectUpgrade(opt.key);
+                });
+
+                cardDeck.appendChild(card);
+
+                setTimeout(() => {
+                    const canvasEl = document.getElementById(`preview-canvas-${idx}`);
+                    if (canvasEl) renderSkillPreview(canvasEl, opt.key);
+                }, 10);
+            });
+
+            document.getElementById('screen-upgrade').classList.remove('hidden');
+        }
+
+        function selectUpgrade(skillKey) {
+            player.skills[skillKey].level++;
+            checkEvolution();
+            document.getElementById('screen-upgrade').classList.add('hidden');
+            gameState = 'PLAYING';
+            updateWeaponsHUD();
+        }
+
+        function checkEvolution() {
+            const sk = player.skills;
+            if (sk.iaiSlash.level >= 5 && sk.passiveIai.level >= 1 && !sk.iaiSlash.evolved) {
+                sk.iaiSlash.evolved = true;
+                sk.iaiSlash.name = '【超武】神威・無想竹龍一閃';
+                showToastBanner(sk.iaiSlash.name, '青竹居合極限昇華！全屏劍氣狂瀾！');
+            }
+            if (sk.ofuda.level >= 5 && sk.passivePower.level >= 1 && !sk.ofuda.evolved) {
+                sk.ofuda.evolved = true;
+                sk.ofuda.name = '【超武】萬華・八百萬竹符';
+                showToastBanner(sk.ofuda.name, '破邪神符風暴！破魔覆蓋十方！');
+            }
+        }
+
+        function updateWeaponsHUD() {
+            const list = document.getElementById('hud-weapon-list');
+            list.innerHTML = '';
+            for (let k in player.skills) {
+                const s = player.skills[k];
+                if (s.level > 0) {
+                    const badge = document.createElement('div');
+                    badge.className = 'px-2 py-0.5 rounded bg-[#EDE8DF] border border-[#DCD3C5] text-[10px] font-bold text-[#2B2A29] whitespace-nowrap flex items-center gap-1';
+                    badge.innerHTML = `<span class="text-[#00A86B] font-black">${s.level}</span> ${s.name}`;
+                    list.appendChild(badge);
+                }
+            }
+        }
+
+        function showToastBanner(title, sub) {
+            const banner = document.getElementById('hud-toast-banner');
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-sub').innerText = sub;
+            banner.classList.remove('opacity-0', 'translate-y-3');
+            setTimeout(() => {
+                banner.classList.add('opacity-0', 'translate-y-3');
+            }, 3400);
+        }
+
+        /* ==========================================================
+           MAIN GAME UPDATE LOOP
+        ========================================================== */
+        function gameLoop(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const dt = Math.min(0.05, (timestamp - lastTime) / 1000);
+            lastTime = timestamp;
+
+            if (gameState === 'PLAYING') {
+                updateGame(dt);
+            }
+            renderGame();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateGame(dt) {
+            if (hitStopTimer > 0) {
+                hitStopTimer -= dt;
+                return;
+            }
+
+            gameTime += dt;
+
+            // Timer
+            const mins = String(Math.floor(gameTime / 60)).padStart(2, '0');
+            const secs = String(Math.floor(gameTime % 60)).padStart(2, '0');
+            document.getElementById('hud-timer').innerText = `${mins}:${secs}`;
+
+            // Combo Timeout
+            if (comboTimer > 0) {
+                comboTimer -= dt;
+                if (comboTimer <= 0) comboCount = 0;
+            }
+            const comboEl = document.getElementById('hud-combo-badge');
+            if (comboCount > 1) {
+                comboEl.classList.remove('opacity-0', 'scale-90');
+                document.getElementById('hud-combo').innerText = comboCount;
+            } else {
+                comboEl.classList.add('opacity-0', 'scale-90');
+            }
+
+            // Parry & Deflect Cooldowns
+            if (player.parryWindow > 0) {
+                player.parryWindow -= dt;
+                if (player.parryWindow <= 0) player.isParrying = false;
+            }
+            if (player.parryCooldown > 0) {
+                player.parryCooldown -= dt;
+                const parryPct = Math.max(0, 1 - (player.parryCooldown / player.parryMaxCooldown)) * 100;
+                document.getElementById('hud-parry-fill').style.width = `${parryPct}%`;
+                document.getElementById('hud-parry-txt').innerText = parryPct >= 100 ? '準備就緒' : '調息收刀';
+            }
+
+            // Dash Cooldown
+            if (player.dashDuration > 0) {
+                player.dashDuration -= dt;
+                if (player.dashDuration <= 0) player.isDashing = false;
+            }
+            if (player.dashCooldown > 0) player.dashCooldown -= dt;
+
+            // Movement Inputs
+            let mx = 0; let my = 0;
+            if (keys.KeyW || keys.ArrowUp) my -= 1;
+            if (keys.KeyS || keys.ArrowDown) my += 1;
+            if (keys.KeyA || keys.ArrowLeft) mx -= 1;
+            if (keys.KeyD || keys.ArrowRight) mx += 1;
+
+            const len = Math.hypot(mx, my);
+            const speedMult = (1 + player.skills.passiveHaste.level * 0.18) * (player.isDashing ? 2.85 : 1);
+
+            if (len > 0) {
+                player.vx = (mx / len) * player.speed * speedMult;
+                player.vy = (my / len) * player.speed * speedMult;
+                player.facing = mx > 0 ? 1 : (mx < 0 ? -1 : player.facing);
+                player.walkCycle += dt * 14;
+            } else {
+                player.vx *= 0.8;
+                player.vy *= 0.8;
+            }
+            player.x += player.vx * dt;
+            player.y += player.vy * dt;
+            player.breathPhase += dt * 4;
+
+            // Aim angle
+            player.angle = Math.atan2(pointer.y - height / 2, pointer.x - width / 2);
+
+            // Natural Regen
+            player.hp = Math.min(player.maxHp, player.hp + player.regen * dt);
+            updatePlayerHUD();
+
+            if (screenShake > 0) screenShake = Math.max(0, screenShake - dt * 25);
+
+            updatePlayerAttacks(dt);
+            spawnEnemyWave(dt);
+            updateEnemies(dt);
+            updateProjectiles(dt);
+            updatePickups(dt);
+            updateParticles(dt);
+        }
+
+        function updateEnemies(dt) {
+            enemies.forEach(e => {
+                const dx = player.x - e.x;
+                const dy = player.y - e.y;
+                const dist = Math.hypot(dx, dy);
+
+                // Flanking & chasing AI
+                if (dist > 0) {
+                    let moveSpeed = e.speed;
+                    if (e.type === 'tengu') moveSpeed *= 1.25;
+                    e.x += (dx / dist) * moveSpeed * dt;
+                    e.y += (dy / dist) * moveSpeed * dt;
+                }
+                e.animPhase += dt * 3;
+                if (e.flashTimer > 0) e.flashTimer -= dt;
+
+                // Enemy Range Attacks (STRICTLY CRIMSON / PURPLE - NO BLUE!)
+                e.attackTimer -= dt;
+                if (e.attackTimer <= 0 && dist < 480) {
+                    e.attackTimer = e.isBoss ? 0.95 : 2.4;
+
+                    if (e.type === 'kitsune') {
+                        // Cast glowing cursed purple spirit orb
+                        const fireAngle = Math.atan2(dy, dx);
+                        enemyProjectiles.push({
+                            x: e.x,
+                            y: e.y,
+                            vx: Math.cos(fireAngle) * 230,
+                            vy: Math.sin(fireAngle) * 230,
+                            radius: 11,
+                            damage: 24,
+                            color: THEME.enemyPurple
+                        });
+                    } else if (e.isBoss && e.type === 'rasetsu_hannya') {
+                        // 8-Way Demonic Crimson Needle Wave
+                        for (let w = 0; w < 8; w++) {
+                            const wa = (Math.PI * 2 / 8) * w;
+                            enemyProjectiles.push({
+                                x: e.x,
+                                y: e.y,
+                                vx: Math.cos(wa) * 240,
+                                vy: Math.sin(wa) * 240,
+                                radius: 12,
+                                damage: 28,
+                                color: THEME.enemyCrimson
+                            });
+                        }
+                    } else if (e.isBoss && e.type === 'otakemaru_yasha') {
+                        // Spiral Dark Purple Flame Burst
+                        for (let s = 0; s < 6; s++) {
+                            const sa = Math.atan2(dy, dx) + (s - 2.5) * 0.25;
+                            enemyProjectiles.push({
+                                x: e.x,
+                                y: e.y,
+                                vx: Math.cos(sa) * 260,
+                                vy: Math.sin(sa) * 260,
+                                radius: 13,
+                                damage: 32,
+                                color: THEME.enemyViolet
+                            });
+                        }
+                    }
+                }
+
+                // Melee Contact
+                if (dist < e.radius + player.radius) {
+                    if (!player.isDashing && !player.isParrying) {
+                        player.hp -= e.damage * dt;
+                        screenShake = 6;
+                        if (player.hp <= 0) triggerGameOver();
+                    }
+                }
+            });
+
+            // Update Enemy Projectiles (Deflectable by player!)
+            for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
+                const ep = enemyProjectiles[i];
+                ep.x += ep.vx * dt;
+                ep.y += ep.vy * dt;
+
+                const d = Math.hypot(ep.x - player.x, ep.y - player.y);
+                if (d < ep.radius + player.radius) {
+                    if (player.isParrying) {
+                        triggerPlayerParry();
+                    } else if (!player.isDashing) {
+                        player.hp -= ep.damage;
+                        screenShake = 10;
+                        createInkSplatter(player.x, player.y, THEME.enemyCrimson, 8);
+                        enemyProjectiles.splice(i, 1);
+                        if (player.hp <= 0) triggerGameOver();
+                    }
+                }
+            }
+        }
+
+        function updateProjectiles(dt) {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const p = projectiles[i];
+                p.lifetime -= dt;
+
+                if (p.lifetime <= 0) {
+                    projectiles.splice(i, 1);
+                    continue;
+                }
+
+                if (p.vx) p.x += p.vx * dt;
+                if (p.vy) p.y += p.vy * dt;
+
+                // Charm homing
+                if (p.type === 'ofuda_charm') {
+                    let nearest = null;
+                    let nd = 330;
+                    enemies.forEach(e => {
+                        const d = Math.hypot(e.x - p.x, e.y - p.y);
+                        if (d < nd) { nd = d; nearest = e; }
+                    });
+                    if (nearest) {
+                        const ha = Math.atan2(nearest.y - p.y, nearest.x - p.x);
+                        p.vx += Math.cos(ha) * 620 * dt;
+                        p.vy += Math.sin(ha) * 620 * dt;
+                    }
+                }
+
+                // Collision with enemies
+                for (let e of enemies) {
+                    const d = Math.hypot(e.x - p.x, e.y - p.y);
+                    if (d < e.radius + p.radius) {
+                        const isDeflected = p.type === 'deflected_blade';
+                        applyDamageToEnemy(e, p.damage, isDeflected);
+                        if (isDeflected) deflectKills++;
+
+                        p.pierce = (p.pierce || 1) - 1;
+                        if (p.pierce <= 0) {
+                            projectiles.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+
+                // Collision with destructible map props
+                mapProps.forEach(mp => {
+                    const d = Math.hypot(mp.x - p.x, mp.y - p.y);
+                    if (d < mp.radius + p.radius) {
+                        damageMapProp(mp, p.damage);
+                    }
+                });
+            }
+        }
+
+        function updatePickups(dt) {
+            const pullRadius = player.pickupRadius * (1 + player.skills.passiveSoul.level * 0.4);
+
+            // Magatamas (EXP)
+            for (let i = magatamas.length - 1; i >= 0; i--) {
+                const m = magatamas[i];
+                const dx = player.x - m.x;
+                const dy = player.y - m.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist < pullRadius) {
+                    m.vx += (dx / dist) * 780 * dt;
+                    m.vy += (dy / dist) * 780 * dt;
+                    m.x += m.vx * dt;
+                    m.y += m.vy * dt;
+
+                    if (dist < player.radius + 12) {
+                        player.exp += m.val;
+                        audio.playMagatama();
+                        magatamas.splice(i, 1);
+
+                        if (player.exp >= player.nextExp) {
+                            player.exp -= player.nextExp;
+                            player.level++;
+                            player.nextExp = Math.floor(player.nextExp * 1.35 + 16);
+                            triggerLevelUp();
+                        }
+                    }
+                }
+            }
+
+            // Dropped Items (Onigiri, Bomb, Bell)
+            for (let i = droppedItems.length - 1; i >= 0; i--) {
+                const item = droppedItems[i];
+                const dist = Math.hypot(player.x - item.x, player.y - item.y);
+
+                if (dist < player.radius + 16) {
+                    audio.playItemPickup();
+
+                    if (item.type === 'onigiri') {
+                        player.hp = Math.min(player.maxHp, player.hp + 75);
+                        addFloatingText(player.x, player.y - 30, '+75 體力', THEME.bambooGreen, 22);
+                    } else if (item.type === 'bomb') {
+                        audio.playThunder();
+                        screenShake = 24;
+                        enemies.forEach(e => applyDamageToEnemy(e, 400, true));
+                        enemyProjectiles = [];
+                        addFloatingText(player.x, player.y - 30, '【全屏破邪神雷】', THEME.enemyCrimson, 26);
+                    } else if (item.type === 'bell') {
+                        // Vacuum all magatamas
+                        magatamas.forEach(m => {
+                            m.x = player.x;
+                            m.y = player.y;
+                        });
+                        addFloatingText(player.x, player.y - 30, '【萬魔引魂】', THEME.gold, 26);
+                    }
+
+                    droppedItems.splice(i, 1);
+                }
+            }
+        }
+
+        function updateParticles(dt) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.vx *= 0.94;
+                p.vy *= 0.94;
+                p.alpha -= p.decay * dt;
+                if (p.alpha <= 0) particles.splice(i, 1);
+            }
+            for (let i = shockwaves.length - 1; i >= 0; i--) {
+                const s = shockwaves[i];
+                s.r += (s.maxR - s.r) * 12 * dt;
+                s.alpha -= 2.2 * dt;
+                if (s.alpha <= 0) shockwaves.splice(i, 1);
+            }
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                const t = floatingTexts[i];
+                t.y += t.vy * dt;
+                t.alpha -= 1.4 * dt;
+                if (t.alpha <= 0) floatingTexts.splice(i, 1);
+            }
+        }
+
+        function updatePlayerHUD() {
+            const hpPct = Math.max(0, (player.hp / player.maxHp)) * 100;
+            document.getElementById('hud-hp-fill').style.width = `${hpPct}%`;
+            document.getElementById('hud-hp-txt').innerText = `${Math.ceil(player.hp)} / ${player.maxHp}`;
+
+            const expPct = Math.min(100, (player.exp / player.nextExp) * 100);
+            document.getElementById('hud-exp-fill').style.width = `${expPct}%`;
+            document.getElementById('hud-exp-txt').innerText = `${player.exp} / ${player.nextExp}`;
+            document.getElementById('hud-level').innerText = toKanjiRank(player.level);
+
+            document.getElementById('hud-kills').innerText = killCount;
+
+            const ultPct = Math.floor((player.ultCharge / player.maxUltCharge) * 100);
+            document.getElementById('hud-ult-pct').innerText = `${ultPct}%`;
+            const ultIcon = document.getElementById('hud-ult-icon');
+            const ultGlow = document.getElementById('hud-ult-glow');
+            if (ultPct >= 100) {
+                ultIcon.className = 'fa-solid fa-dragon text-xl text-[#00F2FF] animate-bounce';
+                ultGlow.className = 'absolute inset-0 rounded-2xl bg-[#00F2FF]/25 animate-ping';
+            } else {
+                ultIcon.className = 'fa-solid fa-dragon text-lg text-[#A69C8E]';
+                ultGlow.className = 'absolute inset-0 rounded-2xl bg-transparent';
+            }
+        }
+
+        function toKanjiRank(lvl) {
+            const ranks = ['壹', '貳', '參', '肆', '伍', '陸', '柒', '捌', '玖', '拾'];
+            return (ranks[lvl - 1] || lvl) + '段';
+        }
+
+        /* ==========================================================
+           MAIN RENDER LOOP (SUMI-E CAMERA & LAYERS)
+        ========================================================== */
+        function renderGame() {
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.save();
+            const shakeX = (Math.random() - 0.5) * screenShake;
+            const shakeY = (Math.random() - 0.5) * screenShake;
+            ctx.translate(width / 2 - player.x + shakeX, height / 2 - player.y + shakeY);
+
+            // 1. Layer: Destructible Map Props
+            mapProps.forEach(p => drawMapProp(ctx, p));
+
+            // 2. Layer: Dropped Items (Onigiri, Bombs, Bells)
+            droppedItems.forEach(item => drawDroppedItem(ctx, item));
+
+            // 3. Layer: Magatama EXP Gems
+            magatamas.forEach(m => {
+                ctx.fillStyle = THEME.playerCyan;
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, 4.5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // 4. Layer: Monsters (Sorted by Y for depth perspective)
+            const sortedEnemies = [...enemies].sort((a, b) => a.y - b.y);
+            sortedEnemies.forEach(e => drawMonster(ctx, e));
+
+            // 5. Layer: Bamboo Panda Protagonist
+            drawBambooPanda(ctx, player);
+
+            // 6. Layer: Enemy Projectiles (Strictly Crimson / Magenta / Purple)
+            enemyProjectiles.forEach(ep => {
+                ctx.fillStyle = ep.color;
+                ctx.beginPath();
+                ctx.arc(ep.x, ep.y, ep.radius, 0, Math.PI * 2);
+                ctx.fill();
+                // Sharp high-contrast white ring
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 1.8;
+                ctx.stroke();
+            });
+
+            // 7. Layer: Player Attacks (Slashes, Charms, Reflected Jade Blades)
+            projectiles.forEach(p => {
+                ctx.save();
+                if (p.type === 'deflected_blade') {
+                    // Reflected Jade / Cyan Blade
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.angle);
+                    ctx.fillStyle = p.color;
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(-18, -8);
+                    ctx.quadraticCurveTo(8, -12, 24, 0);
+                    ctx.quadraticCurveTo(8, 12, -18, 8);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                } else if (p.type === 'iai_arc') {
+                    // Sweeping Cyan / Jade Arc
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.angle);
+                    ctx.strokeStyle = p.isEvolved ? THEME.playerCyan : THEME.playerBlue;
+                    ctx.lineWidth = p.isEvolved ? 6.5 : 4.5;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, p.radius, -0.8, 0.8);
+                    ctx.stroke();
+                } else if (p.type === 'ofuda_charm') {
+                    // Talisman Charm
+                    ctx.fillStyle = '#FAF8F5';
+                    ctx.strokeStyle = THEME.bambooGreen;
+                    ctx.lineWidth = 2;
+                    ctx.fillRect(p.x - 5, p.y - 8, 10, 16);
+                    ctx.strokeRect(p.x - 5, p.y - 8, 10, 16);
+                } else if (p.type === 'thunder_bolt') {
+                    // Cyan Divine Lightning
+                    ctx.strokeStyle = THEME.playerCyan;
+                    ctx.lineWidth = 5.5;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y - 450);
+                    ctx.lineTo(p.x - 16, p.y - 200);
+                    ctx.lineTo(p.x + 22, p.y - 90);
+                    ctx.lineTo(p.x, p.y);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            });
+
+            // 8. Layer: Particles & Shockwaves
+            particles.forEach(pt => {
+                ctx.fillStyle = pt.color;
+                ctx.globalAlpha = Math.max(0, pt.alpha);
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            });
+
+            shockwaves.forEach(sw => {
+                ctx.strokeStyle = sw.color;
+                ctx.lineWidth = sw.width;
+                ctx.globalAlpha = Math.max(0, sw.alpha);
+                ctx.beginPath();
+                ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            });
+
+            // 9. Layer: Floating Calligraphy Damage & Kill Texts
+            floatingTexts.forEach(ft => {
+                ctx.fillStyle = ft.color;
+                ctx.globalAlpha = Math.max(0, ft.alpha);
+                ctx.font = `900 ${ft.size}px 'Noto Serif TC', serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.globalAlpha = 1;
+            });
+
+            ctx.restore();
+        }
+
+        /* ==========================================================
+           GAME OVER & RESTART
+        ========================================================== */
+        function triggerGameOver() {
+            gameState = 'GAMEOVER';
+            audio.playTaiko(40, 0.85);
+
+            const mins = String(Math.floor(gameTime / 60)).padStart(2, '0');
+            const secs = String(Math.floor(gameTime % 60)).padStart(2, '0');
+
+            document.getElementById('go-time').innerText = `${mins}:${secs}`;
+            document.getElementById('go-level').innerText = toKanjiRank(player.level);
+            document.getElementById('go-kills').innerText = killCount;
+            document.getElementById('go-combo').innerText = maxCombo;
+            document.getElementById('go-parries').innerText = parryCount;
+            document.getElementById('go-deflect-kills').innerText = deflectKills;
+
+            let rankTitle = '竹林學徒';
+            if (parryCount >= 25 || killCount >= 250) rankTitle = '青竹俠客';
+            if (parryCount >= 40 && killCount >= 500) rankTitle = '竹林劍聖';
+            if (gameTime >= 180) rankTitle = '無上修羅熊貓';
+            document.getElementById('go-rank').innerText = rankTitle;
+
+            document.getElementById('screen-gameover').classList.remove('hidden');
+        }
+
+        function restartGame() {
+            document.getElementById('screen-gameover').classList.add('hidden');
+            document.getElementById('screen-start').classList.add('hidden');
+
+            gameTime = 0;
+            killCount = 0;
+            parryCount = 0;
+            deflectKills = 0;
+            comboCount = 0;
+            maxCombo = 0;
+            screenShake = 0;
+            hitStopTimer = 0;
+
+            player.x = 0;
+            player.y = 0;
+            player.hp = 380;
+            player.maxHp = 380;
+            player.level = 1;
+            player.exp = 0;
+            player.nextExp = 25;
+            player.ultCharge = 0;
+            player.boss1Spawned = false;
+            player.boss2Spawned = false;
+
+            for (let k in player.skills) {
+                player.skills[k].level = (k === 'iaiSlash') ? 1 : 0;
+                if (player.skills[k].evolved !== undefined) player.skills[k].evolved = false;
+            }
+
+            enemies = [];
+            enemyProjectiles = [];
+            projectiles = [];
+            magatamas = [];
+            droppedItems = [];
+            particles = [];
+            shockwaves = [];
+            floatingTexts = [];
+
+            initMapProps();
+            updateWeaponsHUD();
+            updatePlayerHUD();
+            gameState = 'PLAYING';
+        }
+
+        /* ==========================================================
+           CONTROLS & BUTTON BINDINGS
+        ========================================================== */
+        document.getElementById('btn-start-game').addEventListener('click', () => {
+            audio.init();
+            restartGame();
+        });
+
+        document.getElementById('btn-restart-game').addEventListener('click', () => {
+            audio.init();
+            restartGame();
+        });
+
+        document.getElementById('hud-ult-container').addEventListener('click', () => {
+            triggerPlayerUltimate();
+        });
+
+        document.getElementById('btn-touch-parry').addEventListener('touchstart', e => {
+            e.preventDefault();
+            triggerPlayerParry();
+        });
+        document.getElementById('btn-touch-dash').addEventListener('touchstart', e => {
+            e.preventDefault();
+            triggerPlayerDash();
+        });
+        document.getElementById('btn-touch-ult').addEventListener('touchstart', e => {
+            e.preventDefault();
+            triggerPlayerUltimate();
+        });
+
+        // Start
+        initMapProps();
+        updateWeaponsHUD();
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>
